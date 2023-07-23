@@ -11,6 +11,7 @@ keywords = ["game", "engine", "graphics", "gamedev", "whirlwing"]
 categories = ["game-engines", "graphics"]
 workspace = "../"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+crate-type = ["rlib", "cdylib"]
 
 [dependencies]
