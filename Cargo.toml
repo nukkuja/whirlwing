@@ -1,0 +1,6 @@
+[workspace]
+
+members = [
+    "whirlwing",
+    "whirlwing-playground",
+]

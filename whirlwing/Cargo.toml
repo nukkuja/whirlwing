@@ -1,0 +1,16 @@
+[package]
+name = "whirlwing"
+version = "0.0.0"
+edition = "2021"
+rust-version = "1.71.0"
+description = "Game Engine, written in Rust"
+readme = "../README.md"
+repository = "https://github.com/nukkuja/whirlwing.git"
+license = "MIT OR Apache-2.0"
+keywords = ["game", "engine", "graphics", "gamedev", "whirlwing"]
+categories = ["game-engines", "graphics"]
+workspace = "../"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
