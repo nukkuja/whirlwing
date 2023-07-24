@@ -1,4 +1,4 @@
 fn main() {
-    println!("{}", whirlwing::add(5, 7));
-    whirlwing::hello();
+    let f = 5;
+    whirlwing::ww_log::log!("I'm calling log macro! Var = {}.", f);
 }

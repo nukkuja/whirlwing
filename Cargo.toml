@@ -3,4 +3,6 @@
 members = [
     "whirlwing",
     "whirlwing-playground",
+
+    "whirlwing/crates/ww-log",
 ]

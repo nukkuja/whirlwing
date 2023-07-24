@@ -15,3 +15,7 @@ workspace = "../"
 crate-type = ["rlib", "cdylib"]
 
 [dependencies]
+ww-log = { path = "crates/ww-log", optional = true }
+
+[features]
+log = ["ww-log"]
