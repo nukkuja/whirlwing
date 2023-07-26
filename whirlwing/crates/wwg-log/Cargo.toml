@@ -1,5 +1,5 @@
 [package]
-name = "ww-log"
+name = "wwg-log"
 version = "0.1.0"
 edition = "2021"
 
@@ -10,3 +10,4 @@ ansi_term = "0.12.1"
 version = "0.4.26"
 default-features = false
 features = ["clock", "std"]
+

@@ -2,10 +2,15 @@
 #[doc(hidden)]
 pub mod log_utils;
 
+pub mod log_macros;
+
 #[macro_export]
 macro_rules! trace {
-    ($($args:tt),*) => {
-        println!("{}", $crate::log_utils::_paint_trace(format!("{} | {} | {}", "TRACE", $crate::log_utils::_time(), format!($($args),*))));
+    ($($args:tt),+) => {
+        let temp = format!("{}\t| {} | {}", "TRACE", $crate::log_utils::_time(), format!($($args),+));
+        let temp = format!("{}", $crate::log_utils::_paint_trace(temp));
+        let log_message = $crate::log_utils::LogMessage::new(temp, $crate::log_utils::Severity::Trace);
+        unsafe { $crate::log_utils::LOG.print(log_message); }
     };
 }
 

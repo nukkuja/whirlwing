@@ -1,2 +1,2 @@
 #[cfg(feature = "log")]
-pub use ww_log;
+pub use wwg_log;

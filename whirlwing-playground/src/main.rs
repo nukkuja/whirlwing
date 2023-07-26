@@ -1,5 +1,5 @@
 fn main() {
-    use whirlwing::ww_log::{trace, info, warn, err};
+    use whirlwing::wwg_log::{trace, info, warn, err};
     let f = 5;
     trace!("I'm calling trace macro! Var = {}.", f);
     info!("This is info macro. This information was provided to you by me :)");
