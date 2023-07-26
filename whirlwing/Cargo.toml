@@ -19,3 +19,4 @@ wwg-log = { path = "crates/wwg-log", optional = true }
 
 [features]
 log = ["wwg-log"]
+engine_log = ["wwg-log?/engine_log"]
