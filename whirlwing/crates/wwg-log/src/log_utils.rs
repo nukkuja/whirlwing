@@ -1,8 +1,11 @@
+// These are static variables that will collect log messages.
 pub static mut LOG: &'static dyn Log = &Logger::new(Severity::Trace);
 
 #[cfg(feature = "engine_log")]
 pub static mut LOG_ENGINE: &'static dyn Log = &Logger::new(Severity::Trace);
 
+/// This function sets standard logger, which prints log messages to stderr.
+/// You can use this function to set severity filter.
 pub fn set_log_default(severity_filter: Severity) {
     set_log_inner(|| {
         let logger = Box::new(Logger { severity_filter });
@@ -10,10 +13,12 @@ pub fn set_log_default(severity_filter: Severity) {
     });
 }
 
+/// This function sets your custom logger, which on log message will trigger print function of Log trait.
 pub fn set_log_custom(logger: Box<dyn Log>) {
     set_log_inner(|| Box::leak(logger))
 }
 
+/// Works exactly as `set_log_default` but affects engine_log.
 #[cfg(feature = "engine_log")]
 pub fn set_engine_log_default(severity_filter: Severity) {
     set_engine_log_inner(|| {
@@ -22,15 +27,19 @@ pub fn set_engine_log_default(severity_filter: Severity) {
     });
 }
 
+/// Works exactly as `set_log_custom` but affects engine_log.
 #[cfg(feature = "engine_log")]
 pub fn set_engine_log_custom(logger: Box<dyn Log>) {
     set_engine_log_inner(|| Box::leak(logger))
 }
 
+/// Trait must be implemented by object to set it as logger.
+/// Print function will be called every time when one of log macros is used.
 pub trait Log {
     fn print(&self, message: LogMessage);
 }
 
+/// Standard logger. Prints log messages to stderr.
 #[derive(Debug)]
 struct Logger {
     severity_filter: Severity,
@@ -45,7 +54,23 @@ impl Logger {
 impl Log for Logger {
     fn print(&self, message: LogMessage) {
         if message.severity >= self.severity_filter {
-            eprintln!("{}", message.content);
+            let formatted;
+            if message.engine_log {
+                formatted = format!(
+                    "WHIRLWING | {}\t| {} | {}",
+                    message.severity,
+                    message.format_time(),
+                    message.content
+                );
+            } else {
+                formatted = format!(
+                    "LOG | {}\t| {} | {}",
+                    message.severity,
+                    message.format_time(),
+                    message.content
+                );
+            }
+            eprintln!("{}", message.colour.paint(formatted));
         }
     }
 }
@@ -59,22 +84,129 @@ pub enum Severity {
     None = 5,
 }
 
-#[derive(Debug, PartialEq, PartialOrd)]
+impl std::fmt::Display for Severity {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match *self {
+            Severity::Trace => write!(f, "TRACE"),
+            Severity::Info => write!(f, "INFO"),
+            Severity::Warn => write!(f, "WARNING"),
+            Severity::Err => write!(f, "ERROR"),
+            Severity::None => write!(f, "NONE"),
+        }
+    }
+}
+
+#[derive(Debug)]
 pub struct LogMessage {
     content: String,
     severity: Severity,
+    time: chrono::DateTime<chrono::Local>,
+    colour: ansi_term::Colour,
+    engine_log: bool,
 }
 
 impl LogMessage {
-    pub fn new(content: String, severity: Severity) -> Self {
-        LogMessage { content, severity }
+    pub fn new(content: String, severity: Severity, colour: ansi_term::Colour, engine_log: bool) -> Self {
+        LogMessage { content, severity, time: chrono::Local::now(), colour, engine_log }
+    }
+
+    pub fn format_time(&self) -> String {
+        format!("{}", self.time.format("%d.%m.%Y | %H:%M:%S"))
     }
 }
 
-impl std::fmt::Display for LogMessage {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", format_args!("{}", self.content))
-    }
+// Next functions are mostly used by macros and are not intended for external usage.
+
+#[doc(hidden)]
+#[inline]
+pub fn _format_log_message_trace(args: std::fmt::Arguments) -> LogMessage {
+    LogMessage::new(
+        format!("{}", args),
+        Severity::Trace,
+        ansi_term::Colour::RGB(0, 255, 255),
+        false,
+    )
+}
+
+#[doc(hidden)]
+#[inline]
+pub fn _format_log_message_info(args: std::fmt::Arguments) -> LogMessage {
+    LogMessage::new(
+        format!("{}", args),
+        Severity::Info,
+        ansi_term::Colour::White,
+        false,
+    )
+}
+
+#[doc(hidden)]
+#[inline]
+pub fn _format_log_message_warn(args: std::fmt::Arguments) -> LogMessage {
+    LogMessage::new(
+        format!("{}", args),
+        Severity::Warn,
+        ansi_term::Colour::Yellow,
+        false,
+    )
+}
+
+#[doc(hidden)]
+#[inline]
+pub fn _format_log_message_err(args: std::fmt::Arguments) -> LogMessage {
+    LogMessage::new(
+        format!("{}", args),
+        Severity::Err,
+        ansi_term::Colour::Red,
+        false,
+    )
+}
+
+#[cfg(feature = "engine_log")]
+#[doc(hidden)]
+#[inline]
+pub fn _format_log_engine_message_trace(args: std::fmt::Arguments) -> LogMessage {
+    LogMessage::new(
+        format!("{}", args),
+        Severity::Trace,
+        ansi_term::Colour::RGB(0, 255, 255),
+        true,
+    )
+}
+
+#[cfg(feature = "engine_log")]
+#[doc(hidden)]
+#[inline]
+pub fn _format_log_engine_message_info(args: std::fmt::Arguments) -> LogMessage {
+    LogMessage::new(
+        format!("{}", args),
+        Severity::Info,
+        ansi_term::Colour::White,
+        true,
+    )
+}
+
+#[cfg(feature = "engine_log")]
+#[doc(hidden)]
+#[inline]
+pub fn _format_log_engine_message_warn(args: std::fmt::Arguments) -> LogMessage {
+    LogMessage::new(
+        format!("{}", args),
+        Severity::Warn,
+        ansi_term::Colour::Yellow,
+        true,
+    )
+}
+
+#[cfg(feature = "engine_log")]
+#[doc(hidden)]
+#[inline]
+pub fn _format_log_engine_message_err(args: std::fmt::Arguments) -> LogMessage {
+    LogMessage::new(
+        format!("{}", args),
+        Severity::Err,
+        ansi_term::Colour::Red,
+        true,
+    )
 }
 
 fn set_log_inner<F: FnOnce() -> &'static dyn Log>(make_logger: F) {
@@ -92,98 +224,24 @@ fn set_engine_log_inner<F: FnOnce() -> &'static dyn Log>(make_logger: F) {
 
 #[doc(hidden)]
 #[inline]
-pub fn _time() -> String {
-    format!("{}", chrono::Local::now().format("%d.%m.%Y | %H:%M:%S"))
-}
-
-#[doc(hidden)]
-#[inline]
-pub fn _paint_trace<'a>(string: String) -> ansi_term::ANSIGenericString<'a, str> {
+fn _paint_trace<'a>(string: String) -> ansi_term::ANSIGenericString<'a, str> {
     ansi_term::Colour::RGB(0, 255, 255).paint(string)
 }
 
 #[doc(hidden)]
 #[inline]
-pub fn _paint_info<'a>(string: String) -> ansi_term::ANSIGenericString<'a, str> {
+fn _paint_info<'a>(string: String) -> ansi_term::ANSIGenericString<'a, str> {
     ansi_term::Colour::White.paint(string)
 }
 
 #[doc(hidden)]
 #[inline]
-pub fn _paint_warn<'a>(string: String) -> ansi_term::ANSIGenericString<'a, str> {
+fn _paint_warn<'a>(string: String) -> ansi_term::ANSIGenericString<'a, str> {
     ansi_term::Colour::Yellow.paint(string)
 }
 
 #[doc(hidden)]
 #[inline]
-pub fn _paint_err<'a>(string: String) -> ansi_term::ANSIGenericString<'a, str> {
+fn _paint_err<'a>(string: String) -> ansi_term::ANSIGenericString<'a, str> {
     ansi_term::Colour::Red.paint(string)
-}
-
-#[doc(hidden)]
-#[inline]
-pub fn _format_log_message_trace(args: std::fmt::Arguments) -> LogMessage {
-    let temp = format!("{}\t| {} | {}", "TRACE", _time(), args);
-    let temp = format!("{}", _paint_trace(temp));
-    LogMessage::new(temp, Severity::Trace)
-}
-
-#[doc(hidden)]
-#[inline]
-pub fn _format_log_message_info(args: std::fmt::Arguments) -> LogMessage {
-    let temp = format!("{}\t| {} | {}", "INFO", _time(), args);
-    let temp = format!("{}", _paint_info(temp));
-    LogMessage::new(temp, Severity::Info)
-}
-
-#[doc(hidden)]
-#[inline]
-pub fn _format_log_message_warn(args: std::fmt::Arguments) -> LogMessage {
-    let temp = format!("{}\t| {} | {}", "WARN", _time(), args);
-    let temp = format!("{}", _paint_warn(temp));
-    LogMessage::new(temp, Severity::Warn)
-}
-
-#[doc(hidden)]
-#[inline]
-pub fn _format_log_message_err(args: std::fmt::Arguments) -> LogMessage {
-    let temp = format!("{}\t| {} | {}", "ERROR", _time(), args);
-    let temp = format!("{}", _paint_err(temp));
-    LogMessage::new(temp, Severity::Err)
-}
-
-#[cfg(feature = "engine_log")]
-#[doc(hidden)]
-#[inline]
-pub fn _format_log_engine_message_trace(args: std::fmt::Arguments) -> LogMessage {
-    let temp = format!("{}\t| {} | {}", "WHIRLWING | TRACE", _time(), args);
-    let temp = format!("{}", _paint_trace(temp));
-    LogMessage::new(temp, Severity::Trace)
-}
-
-#[cfg(feature = "engine_log")]
-#[doc(hidden)]
-#[inline]
-pub fn _format_log_engine_message_info(args: std::fmt::Arguments) -> LogMessage {
-    let temp = format!("{}\t| {} | {}", "WHIRLWING | INFO", _time(), args);
-    let temp = format!("{}", _paint_info(temp));
-    LogMessage::new(temp, Severity::Info)
-}
-
-#[cfg(feature = "engine_log")]
-#[doc(hidden)]
-#[inline]
-pub fn _format_log_engine_message_warn(args: std::fmt::Arguments) -> LogMessage {
-    let temp = format!("{}\t| {} | {}", "WHIRLWING | WARN", _time(), args);
-    let temp = format!("{}", _paint_warn(temp));
-    LogMessage::new(temp, Severity::Warn)
-}
-
-#[cfg(feature = "engine_log")]
-#[doc(hidden)]
-#[inline]
-pub fn _format_log_engine_message_err(args: std::fmt::Arguments) -> LogMessage {
-    let temp = format!("{}\t| {} | {}", "WHIRLWING | ERROR", _time(), args);
-    let temp = format!("{}", _paint_err(temp));
-    LogMessage::new(temp, Severity::Err)
 }
