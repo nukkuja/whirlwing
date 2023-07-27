@@ -218,30 +218,6 @@ fn set_log_inner<F: FnOnce() -> &'static dyn Log>(make_logger: F) {
 #[cfg(feature = "engine_log")]
 fn set_engine_log_inner<F: FnOnce() -> &'static dyn Log>(make_logger: F) {
     unsafe {
-        LOG = make_logger();
+        LOG_ENGINE = make_logger();
     }
-}
-
-#[doc(hidden)]
-#[inline]
-fn _paint_trace<'a>(string: String) -> ansi_term::ANSIGenericString<'a, str> {
-    ansi_term::Colour::RGB(0, 255, 255).paint(string)
-}
-
-#[doc(hidden)]
-#[inline]
-fn _paint_info<'a>(string: String) -> ansi_term::ANSIGenericString<'a, str> {
-    ansi_term::Colour::White.paint(string)
-}
-
-#[doc(hidden)]
-#[inline]
-fn _paint_warn<'a>(string: String) -> ansi_term::ANSIGenericString<'a, str> {
-    ansi_term::Colour::Yellow.paint(string)
-}
-
-#[doc(hidden)]
-#[inline]
-fn _paint_err<'a>(string: String) -> ansi_term::ANSIGenericString<'a, str> {
-    ansi_term::Colour::Red.paint(string)
 }
