@@ -15,6 +15,8 @@ workspace = "../"
 crate-type = ["rlib", "cdylib"]
 
 [dependencies]
+wwg-window = { path = "crates/wwg-window" }
+wwg-events = { path = "crates/wwg-events" }
 wwg-log = { path = "crates/wwg-log", optional = true }
 
 [features]
