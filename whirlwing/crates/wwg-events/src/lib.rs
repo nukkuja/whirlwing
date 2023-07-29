@@ -1,3 +1,4 @@
+#[allow(dead_code)]
 #[derive(Debug)]
 pub struct Event {
     event_type: EventType,
@@ -5,8 +6,11 @@ pub struct Event {
 }
 
 impl Event {
-    pub fn new(event_type: EventType, category: EventCategory) -> Self{
-        Event { event_type, category}
+    pub fn new(event_type: EventType, category: EventCategory) -> Self {
+        Event {
+            event_type,
+            category,
+        }
     }
 
     pub fn event_type(&self) -> EventType {

@@ -1,6 +1,7 @@
-use wwg_window::Window;
+use wwg_events::{EventType, Event, EventCategory};
 #[allow(unused_imports)]
-use wwg_log::{ wwg_trace, wwg_info, wwg_warn, wwg_err };
+use wwg_log::{wwg_err, wwg_info, wwg_trace, wwg_warn};
+use wwg_window::Window;
 
 pub struct Application {
     exit: bool,
@@ -10,20 +11,29 @@ pub struct Application {
 impl Application {
     pub fn new() -> Self {
         wwg_trace!("Whirlwing application is created!");
-        Application { window: Window, exit: false }
+        Application {
+            window: Window::new(),
+            exit: false,
+        }
     }
 
     pub fn run(&mut self) {
-        loop { 
+        loop {
             wwg_info!("New application loop.");
-            let event = self.window.send_event();
-            wwg_info!("Received event from window: {:#?}", event);
-            if event.event_type() == wwg_events::EventType::ApplicationExit {
-                wwg_trace!("Received ApplicationExit event. Setting `exit` to true.");
-                self.exit = true;
+
+            wwg_trace!("Processing events.");
+            while let Some(event) = self.window.get_event() {
+                if event.event_type() == EventType::ApplicationExit {
+                    self.exit = true;
+                }
             }
 
-            if self.exit { break; }
+            wwg_trace!("Adding exit event to window.");
+            self.window.add_event(Event::new(EventType::ApplicationExit, EventCategory::WindowEvent));
+
+            if self.exit {
+                break;
+            }
         }
         wwg_info!("Application terminated.");
     }

@@ -106,8 +106,19 @@ pub struct LogMessage {
 }
 
 impl LogMessage {
-    pub fn new(content: String, severity: Severity, colour: ansi_term::Colour, engine_log: bool) -> Self {
-        LogMessage { content, severity, time: chrono::Local::now(), colour, engine_log }
+    pub fn new(
+        content: String,
+        severity: Severity,
+        colour: ansi_term::Colour,
+        engine_log: bool,
+    ) -> Self {
+        LogMessage {
+            content,
+            severity,
+            time: chrono::Local::now(),
+            colour,
+            engine_log,
+        }
     }
 
     pub fn format_time(&self) -> String {
