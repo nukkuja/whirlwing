@@ -1,18 +1,68 @@
-use winit::dpi::{PhysicalSize, PhysicalPosition};
+use windows::{
+    core::PCWSTR,
+    Win32::Foundation::{
+        HWND, WPARAM, LPARAM, LRESULT, RECT,
+    },
+    Win32::{
+        UI::WindowsAndMessaging::*,
+        Graphics::Gdi::HBRUSH,
+        System::LibraryLoader::GetModuleHandleW,
+    },
+    w,
+};
 
-pub struct Window;
+pub fn create_window() {
+    let wnd_class_name = w!("Whirlwing window class");
+    let hinstance = unsafe { GetModuleHandleW(None).unwrap() };
 
-pub fn win_init() -> winit::window::Window {
-    let event_loop = winit::event_loop::EventLoop::new();
-    let window = winit::window::WindowBuilder::new()
-        .with_title("Whirlwind Windows Window")
-        .with_inner_size(PhysicalSize::new(800, 600))
-        .with_position(PhysicalPosition::new(200, 200))
-        .with_resizable(false)
-        .with_enabled_buttons(winit::window::WindowButtons::MINIMIZE | winit::window::WindowButtons::CLOSE)
-        .build(&event_loop);
+    let wnd_class = WNDCLASSEXW {
+        cbSize: std::mem::size_of::<WNDCLASSEXW>() as u32,
+        style: CS_OWNDC,
+        lpfnWndProc: Some(window_proc),
+        cbClsExtra: 0,
+        cbWndExtra: 0,
+        hInstance: hinstance,
+        hIcon: HICON::default(),
+        hCursor: unsafe { LoadCursorW(None, IDC_ARROW).unwrap() },
+        hbrBackground: HBRUSH::default(),
+        lpszMenuName: PCWSTR::null(),
+        lpszClassName: wnd_class_name,
+        hIconSm: HICON::default(),
+    };
 
-    wwg_log::wwg_trace!("Window is built!");
-    
-    window.unwrap()
+    unsafe { RegisterClassExW(&wnd_class); }
+
+    let wnd_style = WS_OVERLAPPED | WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU;
+
+    let mut rect = RECT { left: 0, right: 800, top: 0, bottom: 600 };
+    unsafe { AdjustWindowRect(&mut rect, wnd_style, false); }
+
+
+    let hwnd = unsafe { CreateWindowExW(
+        WS_EX_LEFT,
+        wnd_class_name,
+        w!("Whirlwing window"), 
+        wnd_style,
+        200,
+        200,
+        rect.right - rect.left,
+        rect.bottom - rect.top,
+        None,
+        None,
+        hinstance,
+        None,
+    ) };
+
+    unsafe { ShowWindow(hwnd, SW_SHOW); }
+}
+
+unsafe extern "system"
+fn window_proc(hwnd: HWND, umsg: u32, wparam: WPARAM, lparam: LPARAM) -> LRESULT {
+    match umsg {
+        WM_DESTROY => {
+            PostQuitMessage(0);
+            LRESULT::default()
+        }
+        _ => DefWindowProcW(hwnd, umsg, wparam, lparam),
+    }
 }

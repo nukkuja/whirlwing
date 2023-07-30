@@ -28,8 +28,8 @@ impl Application {
                 }
             }
 
-            wwg_trace!("Adding exit event to window.");
-            self.window.add_event(Event::new(EventType::ApplicationExit, EventCategory::WindowEvent));
+            // wwg_trace!("Adding exit event to window.");
+            // self.window.add_event(Event::new(EventType::ApplicationExit, EventCategory::WindowEvent));
 
             if self.exit {
                 break;

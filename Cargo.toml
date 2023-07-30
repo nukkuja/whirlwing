@@ -5,7 +5,8 @@ members = [
     "whirlwing-playground",
 
     "whirlwing/crates/wwg-window",
-    "whirlwing/crates/platform/wwg-windows",
     "whirlwing/crates/wwg-events",
     "whirlwing/crates/wwg-log",
+
+    "whirlwing/crates/platform/wwg-windows",
 ]

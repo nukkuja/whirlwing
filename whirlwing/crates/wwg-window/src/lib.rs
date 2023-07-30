@@ -1,7 +1,4 @@
 pub struct Window {
-    #[cfg(target_os = "windows")]
-    window: winit::window::Window,
-
     event_queue: VecDeque<Event>,
 }
 
@@ -12,7 +9,8 @@ use wwg_events::*;
 impl Window {
     #[cfg(target_os = "windows")]
     pub fn new() -> Self {
-        Window { window: wwg_windows::win_init(), event_queue: VecDeque::new() }
+        wwg_windows::create_window();
+        Window { event_queue: VecDeque::new() }
     }
 
     pub fn add_event(&mut self, event: Event) {
