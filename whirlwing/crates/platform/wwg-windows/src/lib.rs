@@ -5,13 +5,36 @@ use windows::{
     },
     Win32::{
         UI::WindowsAndMessaging::*,
-        Graphics::Gdi::HBRUSH,
+        Graphics::Gdi::{HBRUSH, GetDC},
         System::LibraryLoader::GetModuleHandleW,
     },
     w,
 };
 
-pub fn create_window() {
+pub struct WindowInternal {
+    hwnd: HWND,
+}
+
+impl WindowInternal {
+    pub fn process_messages(&self) -> bool {
+        let mut msg = MSG::default();
+        loop {
+            unsafe { 
+                if PeekMessageW(&mut msg, self.hwnd, 0, 0, PM_REMOVE) != true {
+                    return false;
+                }
+                if msg.message == WM_QUIT {
+                    return true;
+                }
+    
+                TranslateMessage(&msg);
+                DispatchMessageW(&msg);
+            }
+        }
+    }
+}
+
+pub fn create_window() -> WindowInternal {
     let wnd_class_name = w!("Whirlwing window class");
     let hinstance = unsafe { GetModuleHandleW(None).unwrap() };
 
@@ -54,12 +77,15 @@ pub fn create_window() {
     ) };
 
     unsafe { ShowWindow(hwnd, SW_SHOW); }
+
+    WindowInternal { hwnd }
 }
 
 unsafe extern "system"
 fn window_proc(hwnd: HWND, umsg: u32, wparam: WPARAM, lparam: LPARAM) -> LRESULT {
     match umsg {
         WM_DESTROY => {
+            wwg_log::warn!("Posting quit message");
             PostQuitMessage(0);
             LRESULT::default()
         }

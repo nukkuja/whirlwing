@@ -1,4 +1,5 @@
 pub struct Window {
+    wnd_internal: wwg_windows::WindowInternal,
     event_queue: VecDeque<Event>,
 }
 
@@ -9,8 +10,13 @@ use wwg_events::*;
 impl Window {
     #[cfg(target_os = "windows")]
     pub fn new() -> Self {
-        wwg_windows::create_window();
-        Window { event_queue: VecDeque::new() }
+        use wwg_windows::create_window;
+        Window { wnd_internal: create_window(), event_queue: VecDeque::new() }
+    }
+
+    #[inline]
+    pub fn process_messages(&self) {
+        self.wnd_internal.process_messages();
     }
 
     pub fn add_event(&mut self, event: Event) {
