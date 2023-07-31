@@ -6,7 +6,7 @@ use windows::{
     Win32::{
         UI::WindowsAndMessaging::*,
         Graphics::{
-            Gdi::{HBRUSH, GetDC},
+            Gdi::{HBRUSH, GetDC, HDC},
             OpenGL::*,
         },
         System::LibraryLoader::{GetModuleHandleW, LoadLibraryW, GetProcAddress},
@@ -110,13 +110,25 @@ pub fn create_window() -> WindowInternal {
                 None => {
                     match wglGetProcAddress(fn_name) {
                         Some(val) => return val as *const std::os::raw::c_void,
-                        None => return std::ptr::null(),
+                        None => {
+                            wwg_log::wwg_info!("Couldn't load {string}.");
+                            return std::ptr::null();
+                        }
                     }
                 }
             }
         });
 
-        let wglCreateContextAttribsARB = wglGetProcAddress(s!("wglCreateContextAttribsARB")).unwrap();
+        let address = wglGetProcAddress(s!("wglCreateContextAttribsARB")).unwrap();
+        #[allow(non_snake_case)]
+        let wglCreateContextAttribsARB = std::mem::transmute::
+            <unsafe extern "system" fn () -> isize,
+            unsafe extern "system" fn(HDC, *const i32, *const f32, u32, *const i32, *const u32) -> i32>
+            (address);
+
+        wglCreateContextAttribsARB(hdc, std::ptr::null(), std::ptr::null(), 0u32, std::ptr::null(), std::ptr::null());
+
+        // let wglChoosePixelFormatARB = wglGetProcAddress(s!("wglChoosePixelFormatARB")).unwrap();
     }
 
     unsafe {
