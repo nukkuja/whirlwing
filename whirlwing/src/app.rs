@@ -1,5 +1,5 @@
 #[allow(unused_imports)]
-use wwg_events::{EventType, Event, EventCategory};
+use wwg_events::{Event, EventCategory, EventType};
 #[allow(unused_imports)]
 use wwg_log::{wwg_err, wwg_info, wwg_trace, wwg_warn};
 use wwg_window::Window;

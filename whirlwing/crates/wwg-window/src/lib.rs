@@ -10,8 +10,11 @@ use wwg_events::*;
 impl Window {
     #[cfg(target_os = "windows")]
     pub fn new() -> Self {
-        use wwg_windows::create_window;
-        Window { wnd_internal: create_window(), event_queue: VecDeque::new() }
+        use wwg_windows::window;
+        Window {
+            wnd_internal: window(),
+            event_queue: VecDeque::new(),
+        }
     }
 
     #[inline]
