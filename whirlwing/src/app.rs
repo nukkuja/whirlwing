@@ -21,25 +21,8 @@ impl Application {
     pub fn run(&mut self) {
         loop {
             wwg_trace!("New application loop.");
-
-            wwg_trace!("Processing window events.");
-            self.window.process_messages();
-
-            wwg_trace!("Processing custom messages");
-            while let Some(event) = self.window.get_event() {
-                if event.event_type() == EventType::ApplicationExit {
-                    self.exit = true;
-                }
-            }
-
-            // wwg_trace!("Adding exit event to window.");
-            // self.window.add_event(Event::new(EventType::ApplicationExit, EventCategory::WindowEvent));
-
-            if self.exit {
-                break;
-            }
         }
-        wwg_info!("Application terminated.");
+        // wwg_info!("Application terminated.");
     }
 }
 
