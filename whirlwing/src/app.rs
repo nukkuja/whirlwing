@@ -17,13 +17,6 @@ impl Application {
             exit: false,
         }
     }
-
-    pub fn run(&mut self) {
-        loop {
-            wwg_trace!("New application loop.");
-        }
-        // wwg_info!("Application terminated.");
-    }
 }
 
 #[cfg(test)]
@@ -31,6 +24,6 @@ mod tests {
     #[test]
     fn create_app() {
         use super::*;
-        Application::new().run();
+        Application::new();
     }
 }

@@ -78,16 +78,18 @@ impl Log for Logger {
 #[derive(Debug, PartialEq, PartialOrd)]
 pub enum Severity {
     Trace = 1,
-    Info = 2,
-    Warn = 3,
-    Err = 4,
-    None = 5,
+    Debug = 2,
+    Info = 3,
+    Warn = 4,
+    Err = 5,
+    None = 6,
 }
 
 impl std::fmt::Display for Severity {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match *self {
             Severity::Trace => write!(f, "TRACE"),
+            Severity::Debug => write!(f, "DEBUG"),
             Severity::Info => write!(f, "INFO"),
             Severity::Warn => write!(f, "WARNING"),
             Severity::Err => write!(f, "ERROR"),
@@ -141,11 +143,22 @@ pub fn _format_log_message_trace(args: std::fmt::Arguments) -> LogMessage {
 
 #[doc(hidden)]
 #[inline]
+pub fn _format_log_message_debug(args: std::fmt::Arguments) -> LogMessage {
+    LogMessage::new(
+        format!("{}", args),
+        Severity::Debug,
+        ansi_term::Colour::White,
+        false,
+    )
+}
+
+#[doc(hidden)]
+#[inline]
 pub fn _format_log_message_info(args: std::fmt::Arguments) -> LogMessage {
     LogMessage::new(
         format!("{}", args),
         Severity::Info,
-        ansi_term::Colour::White,
+        ansi_term::Colour::Green,
         false,
     )
 }
@@ -187,11 +200,23 @@ pub fn _format_log_engine_message_trace(args: std::fmt::Arguments) -> LogMessage
 #[cfg(feature = "engine_log")]
 #[doc(hidden)]
 #[inline]
+pub fn _format_log_engine_message_debug(args: std::fmt::Arguments) -> LogMessage {
+    LogMessage::new(
+        format!("{}", args),
+        Severity::Debug,
+        ansi_term::Colour::White,
+        true,
+    )
+}
+
+#[cfg(feature = "engine_log")]
+#[doc(hidden)]
+#[inline]
 pub fn _format_log_engine_message_info(args: std::fmt::Arguments) -> LogMessage {
     LogMessage::new(
         format!("{}", args),
         Severity::Info,
-        ansi_term::Colour::White,
+        ansi_term::Colour::Green,
         true,
     )
 }

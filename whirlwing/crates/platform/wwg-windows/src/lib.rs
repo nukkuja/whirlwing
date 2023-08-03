@@ -1,5 +1,8 @@
 #![allow(dead_code)]
 
+pub mod windows_error;
+mod windows_utils;
+
 macro_rules! load_wgl_extension {
     ($name_str:literal into $name:ident($($args:ty),*)) => {
         let function_holder = $crate::wglGetProcAddress($crate::s!($name_str)).unwrap();
@@ -106,6 +109,7 @@ const WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB: i32 = 0x00000002;
 const GL_TRUE: i32 = 1;
 const GL_FALSE: i32 = 0;
 
+#[allow(unused_imports)]
 use windows::{
     s, w,
     Win32::{
@@ -119,27 +123,27 @@ use windows::{
     },
 };
 
+use windows_error::*;
+
 struct WindowsWindow {
     hwnd: HWND,
 }
 
-pub fn create_window() {
-    let h_instance = unsafe { GetModuleHandleW(None).unwrap() };
+pub fn create_window() -> Result<(), WindowsError> {
+    let h_instance = windows_utils::get_instance_handle();
     let fake_wnd_class_name = w!("Fake window class");
     let fake_wnd_name = w!("Fake window");
 
     let fake_wnd_class = WNDCLASSEXW {
         cbSize: std::mem::size_of::<WNDCLASSEXW>() as u32,
         style: CS_OWNDC,
-        lpfnWndProc: None,
+        lpfnWndProc: Some(fake_wnd_proc),
         hInstance: h_instance,
         lpszClassName: fake_wnd_class_name,
         ..Default::default()
     };
 
-    let fake_class_atom = unsafe { RegisterClassExW(&fake_wnd_class) };
-    if fake_class_atom == 0 { wwg_log::wwg_err!("Failed to register fake window class!"); }
-    else { wwg_log::wwg_info!("Created fake window class! Don't forget to release it!"); }
+    windows_utils::register_window_class(fake_wnd_class)?;
     
     let h_fake_wnd = unsafe { CreateWindowExW(
         WINDOW_EX_STYLE::default(),
@@ -156,7 +160,11 @@ pub fn create_window() {
         None,
     )};
     if h_fake_wnd.0 == 0 { wwg_log::wwg_err!("Failed to create fake window!"); }
-    else { wwg_log::wwg_info!("Fake window is created!"); }
-    
-    unsafe { ShowWindow(h_fake_wnd, SW_SHOW); }
+    else { wwg_log::wwg_debug!("Fake window is created!"); }
+
+    Ok(())
+}
+
+unsafe extern "system" fn fake_wnd_proc(h_wnd: HWND, msg: u32, w_param: WPARAM, l_param: LPARAM) -> LRESULT  {
+    DefWindowProcW(h_wnd, msg, w_param, l_param)
 }
