@@ -112,6 +112,7 @@ const GL_FALSE: i32 = 0;
 #[allow(unused_imports)]
 use windows::{
     s, w,
+    core::PCWSTR,
     Win32::{
         Foundation::*,
         UI::WindowsAndMessaging::*,
@@ -123,6 +124,7 @@ use windows::{
     },
 };
 
+use windows_utils::*;
 use windows_error::*;
 
 struct WindowsWindow {
@@ -144,24 +146,43 @@ pub fn create_window() -> Result<(), WindowsError> {
     };
 
     windows_utils::register_window_class(fake_wnd_class)?;
-    
-    let h_fake_wnd = unsafe { CreateWindowExW(
+    wwg_log::wwg_trace!("Fake window class is registered!");
+
+    let h_fake_wnd = new_window(
         WINDOW_EX_STYLE::default(),
         fake_wnd_class_name,
         fake_wnd_name,
         WINDOW_STYLE::default(),
-        100,
-        100,
         640,
         480,
         None,
         None,
         h_instance,
         None,
-    )};
-    if h_fake_wnd.0 == 0 { wwg_log::wwg_err!("Failed to create fake window!"); }
-    else { wwg_log::wwg_debug!("Fake window is created!"); }
+    )?;
+    wwg_log::wwg_trace!("Fake window is created!");
 
+    let fake_wnd_dc = get_device_context(h_fake_wnd)?;
+    wwg_log::wwg_trace!("Device context of fake window retrieved!");
+
+    let pfd = PIXELFORMATDESCRIPTOR {
+        nSize: std::mem::size_of::<PIXELFORMATDESCRIPTOR>() as u16,
+        nVersion: 1,
+        dwFlags: PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
+        iPixelType: PFD_TYPE_RGBA,
+        cColorBits: 32,
+        cDepthBits: 24,
+        cStencilBits: 8,
+        iLayerType: PFD_MAIN_PLANE,
+        ..Default::default()
+    };
+
+    let fake_wnd_pixel_format = choose_pixel_format(fake_wnd_dc, &pfd)?;
+    wwg_log::wwg_trace!("Pixel format for fake window is chosen.");
+
+    set_pixel_format(fake_wnd_dc, fake_wnd_pixel_format, &pfd)?;
+    wwg_log::wwg_trace!("Pixel format for fake window is set.");
+    
     Ok(())
 }
 

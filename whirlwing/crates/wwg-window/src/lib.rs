@@ -3,7 +3,10 @@ pub struct Window;
 impl Window {
     #[cfg(target_os = "windows")]
     pub fn new() -> Self {
-        wwg_windows::create_window();
+        match wwg_windows::create_window() {
+            Ok(()) => (),
+            Err(error) => { wwg_log::wwg_err!("{}", error); },
+        };
         Window
     }
 }
