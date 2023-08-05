@@ -112,7 +112,7 @@ const GL_FALSE: i32 = 0;
 #[allow(unused_imports)]
 use windows::{
     s, w,
-    core::PCWSTR,
+    core::{PCSTR, PCWSTR},
     Win32::{
         Foundation::*,
         UI::WindowsAndMessaging::*,
@@ -176,13 +176,28 @@ pub fn create_window() -> Result<(), WindowsError> {
         iLayerType: PFD_MAIN_PLANE,
         ..Default::default()
     };
-
     let fake_wnd_pixel_format = choose_pixel_format(fake_wnd_dc, &pfd)?;
     wwg_log::wwg_trace!("Pixel format for fake window is chosen.");
-
     set_pixel_format(fake_wnd_dc, fake_wnd_pixel_format, &pfd)?;
     wwg_log::wwg_trace!("Pixel format for fake window is set.");
+
+    let fake_wgl_context = wgl_create_context(fake_wnd_dc)?;
+    wwg_log::wwg_trace!("Fake wgl context is created.");
+    wgl_make_current(fake_wnd_dc, fake_wgl_context)?;
+    wwg_log::wwg_trace!("Fake wgl context is selected.");
+
+    load_gl_functions()?;
+    wwg_log::wwg_trace!("OpenGL functions are loaded.");
+
+    // unsafe {
+    //     ShowWindow(h_fake_wnd, SW_SHOW);
+    //     gl::Viewport(0, 0, 640, 480);
+    //     gl::ClearColor(1f32, 0f32, 1f32, 1f32);
+    //     gl::Clear(gl::COLOR_BUFFER_BIT);
+    //     SwapBuffers(GetDC(h_fake_wnd));
+    // }
     
+    loop {}
     Ok(())
 }
 

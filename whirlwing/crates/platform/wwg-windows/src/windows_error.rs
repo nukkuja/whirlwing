@@ -12,6 +12,9 @@ pub enum WindowsErrorType {
     DeviceContextRetrievalError,
     PixelFormatChooseError,
     PixelFormatSetError,
+    WGLContextCreationError,
+    WGLContextSelectingError,
+    LibraryLoadError,
 }
 
 impl std::fmt::Display for WindowsErrorType {
@@ -23,6 +26,9 @@ impl std::fmt::Display for WindowsErrorType {
             WindowsErrorType::DeviceContextRetrievalError => write!(f, "Device Context Retrieval Error"),
             WindowsErrorType::PixelFormatChooseError => write!(f, "Pixel Format Choose Error"),
             WindowsErrorType::PixelFormatSetError => write!(f, "Pixel Format Set Error"),
+            WindowsErrorType::WGLContextCreationError => write!(f, "WGL Context Creation Error"),
+            WindowsErrorType::WGLContextSelectingError => write!(f, "WGL Context Selecting Error"),
+            WindowsErrorType::LibraryLoadError => write!(f, "Library Load Error"),
         }
     }
 }
@@ -38,7 +44,7 @@ impl std::fmt::Display for WindowsError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
         match &self.err_code {
             Some(err_code) => {
-                let output = format!("Windows Error Code: {}\nError Type: {}\nErrorMessage: {}",
+                let output = format!("Windows Error Code: {}\nError Type: {}\nError Message: {}",
                 err_code,
                 self.err_type,
                 self.err_body);
@@ -46,7 +52,7 @@ impl std::fmt::Display for WindowsError {
                 write!(f, "{output}")
             },
             None => {
-                let output = format!("Windows Error!\nError Type: {}\nErrorMessage: {}",
+                let output = format!("Windows Error!\nError Type: {}\nError Message: {}",
                 self.err_type,
                 self.err_body);
 
