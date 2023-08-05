@@ -41,7 +41,7 @@ P4: IntoParam<HMODULE>,
         let err_code = unsafe { GetLastError() };
         return Err(WindowsError {
             err_type: WindowsErrorType::AdjustWindowRectError,
-            err_code: Some(err_code.0),
+            err_code: Some(Win32ErrorCode(err_code.0)),
             err_body: "Failed to adjust window size while creating the window.".to_string(),
         });
     }
@@ -63,7 +63,7 @@ P4: IntoParam<HMODULE>,
         let err_code = unsafe { GetLastError() };
         return Err(WindowsError {
             err_type: WindowsErrorType::WindowCreationError,
-            err_code: Some(err_code.0),
+            err_code: Some(Win32ErrorCode(err_code.0)),
             err_body: "Failed to create the window.".to_string(),
         });
     }
@@ -95,7 +95,7 @@ pub(crate) fn register_window_class(class: WNDCLASSEXW) -> Result<u16, WindowsEr
         let err_code = unsafe { GetLastError() };
         Err(WindowsError {
             err_type: WindowsErrorType::ClassRegistrationError,
-            err_code: Some(err_code.0),
+            err_code: Some(Win32ErrorCode(err_code.0)),
             err_body: "Failed to register window class.".to_string(),
         })
     }
@@ -109,7 +109,7 @@ pub(crate) fn choose_pixel_format(hdc: HDC, ppfd: *const PIXELFORMATDESCRIPTOR) 
         let err_code = unsafe { GetLastError() };
         Err(WindowsError {
             err_type: WindowsErrorType::PixelFormatChooseError,
-            err_code: Some(err_code.0),
+            err_code: Some(Win32ErrorCode(err_code.0)),
             err_body: "Failed to choose pixel format.".to_string(),
         })
     }
@@ -123,7 +123,7 @@ pub(crate) fn set_pixel_format(hdc: HDC, format: i32, ppfd: *const PIXELFORMATDE
         let err_code = unsafe { GetLastError() };
         Err(WindowsError {
             err_type: WindowsErrorType::PixelFormatChooseError,
-            err_code: Some(err_code.0),
+            err_code: Some(Win32ErrorCode(err_code.0)),
             err_body: "Failed to set pixel format.".to_string(),
         })
     }
