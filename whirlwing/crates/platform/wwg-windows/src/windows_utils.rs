@@ -1,29 +1,24 @@
 #[allow(unused_imports)]
 use windows::{
+    core::{IntoParam, PCSTR, PCWSTR},
     s, w,
-    core::{PCSTR, PCWSTR, IntoParam},
     Win32::{
         Foundation::*,
-        UI::WindowsAndMessaging::*,
+        Graphics::{Gdi::*, OpenGL::*},
         System::LibraryLoader::*,
-        Graphics::{
-            Gdi::*,
-            OpenGL::*,
-        },
+        UI::WindowsAndMessaging::*,
     },
 };
 
 use crate::windows_error::*;
 
-pub(crate) fn new_window
-<
-P0: IntoParam<PCWSTR>,
-P1: IntoParam<PCWSTR>,
-P2: IntoParam<HWND>,
-P3: IntoParam<HMENU>,
-P4: IntoParam<HMODULE>,
->
-(
+pub(crate) fn new_window<
+    P0: IntoParam<PCWSTR>,
+    P1: IntoParam<PCWSTR>,
+    P2: IntoParam<HWND>,
+    P3: IntoParam<HMENU>,
+    P4: IntoParam<HMODULE>,
+>(
     dwexstyle: WINDOW_EX_STYLE,
     lpclassname: P0,
     lpwindowname: P1,
@@ -34,8 +29,13 @@ P4: IntoParam<HMODULE>,
     hmenu: P3,
     hinstance: P4,
     lpparam: Option<*const std::ffi::c_void>,
- ) -> Result<HWND, WindowsError> {
-    let mut wnd_rect = RECT { left: 0, right: nwidth, top: 0, bottom: nheight };
+) -> Result<HWND, WindowsError> {
+    let mut wnd_rect = RECT {
+        left: 0,
+        right: nwidth,
+        top: 0,
+        bottom: nheight,
+    };
     let res = unsafe { AdjustWindowRect(&mut wnd_rect, dwstyle, None) };
     if res == false {
         let err_code = unsafe { GetLastError() };
@@ -46,19 +46,22 @@ P4: IntoParam<HMODULE>,
         });
     }
 
-    let h_wnd = unsafe { CreateWindowExW(
-        dwexstyle,
-        lpclassname,
-        lpwindowname,
-        dwstyle,
-        100, 100,
-        wnd_rect.right - wnd_rect.left,
-        wnd_rect.bottom - wnd_rect.top,
-        hwndparent,
-        hmenu,
-        hinstance,
-        lpparam,
-    )};
+    let h_wnd = unsafe {
+        CreateWindowExW(
+            dwexstyle,
+            lpclassname,
+            lpwindowname,
+            dwstyle,
+            100,
+            100,
+            wnd_rect.right - wnd_rect.left,
+            wnd_rect.bottom - wnd_rect.top,
+            hwndparent,
+            hmenu,
+            hinstance,
+            lpparam,
+        )
+    };
     if h_wnd.0 == 0 {
         let err_code = unsafe { GetLastError() };
         return Err(WindowsError {
@@ -101,7 +104,24 @@ pub(crate) fn register_window_class(class: WNDCLASSEXW) -> Result<u16, WindowsEr
     }
 }
 
-pub(crate) fn choose_pixel_format(hdc: HDC, ppfd: *const PIXELFORMATDESCRIPTOR) -> Result<i32, WindowsError> {
+pub(crate) fn unregister_window_class(class_name: PCWSTR, h_instance: HMODULE) -> Result<(), WindowsError> {
+    let result = unsafe { UnregisterClassW(class_name, h_instance) };
+    if result == TRUE {
+        Ok(())
+    } else {
+        let err_code = unsafe { GetLastError() };
+        Err(WindowsError {
+            err_type: WindowsErrorType::ClassUnregistrationError,
+            err_code: Some(Win32ErrorCode(err_code.0)),
+            err_body: "Failed to unregister window class.".to_string(),
+        })
+    }
+}
+
+pub(crate) fn choose_pixel_format(
+    hdc: HDC,
+    ppfd: *const PIXELFORMATDESCRIPTOR,
+) -> Result<i32, WindowsError> {
     let pixel_format = unsafe { ChoosePixelFormat(hdc, ppfd) };
     if pixel_format != 0 {
         Ok(pixel_format)
@@ -115,7 +135,11 @@ pub(crate) fn choose_pixel_format(hdc: HDC, ppfd: *const PIXELFORMATDESCRIPTOR) 
     }
 }
 
-pub(crate) fn set_pixel_format(hdc: HDC, format: i32, ppfd: *const PIXELFORMATDESCRIPTOR) -> Result<(), WindowsError> {
+pub(crate) fn set_pixel_format(
+    hdc: HDC,
+    format: i32,
+    ppfd: *const PIXELFORMATDESCRIPTOR,
+) -> Result<(), WindowsError> {
     let res = unsafe { SetPixelFormat(hdc, format, ppfd) };
     if res == TRUE {
         Ok(())
@@ -141,6 +165,19 @@ pub(crate) fn wgl_create_context(dc: HDC) -> Result<HGLRC, WindowsError> {
                 err_body: "Failed to create wgl context.".to_string(),
             })
         }
+    }
+}
+
+pub(crate) fn wgl_delete_context(hglrc: HGLRC) -> Result<(), WindowsError> {
+    let result = unsafe { wglDeleteContext(hglrc) };
+    if result == TRUE { Ok(()) }
+    else {
+        let err_code = unsafe { GetLastError() };
+        Err(WindowsError {
+            err_type: WindowsErrorType::WGLContextDeletionError,
+            err_code: Some(Win32ErrorCode(err_code.0)),
+            err_body: "Failed to delete wgl context.".to_string(),
+        })
     }
 }
 
@@ -197,17 +234,61 @@ pub(crate) fn load_gl_functions() -> Result<(), WindowsError> {
         unsafe {
             match GetProcAddress(hmodule, fn_name) {
                 Some(val) => return val as *const std::ffi::c_void,
-                None => {
-                    match wglGetProcAddress(fn_name) {
-                        Some(val) => return val as *const std::ffi::c_void,
-                        None => {
-                            wwg_log::wwg_debug!("Failed to load {string} function.");
-                            return std::ptr::null();
-                        }
+                None => match wglGetProcAddress(fn_name) {
+                    Some(val) => return val as *const std::ffi::c_void,
+                    None => {
+                        wwg_log::wwg_debug!("Failed to load {string} function.");
+                        return std::ptr::null();
                     }
-                }
+                },
             }
         }
     });
     Ok(())
+}
+
+pub(crate) fn load_cursor_w<P: IntoParam<PCWSTR>>(cursor: P) -> Result<HCURSOR, WindowsError> {
+    let result = unsafe { LoadCursorW(HMODULE(0), cursor) };
+    match result {
+        Ok(cursor) => Ok(cursor),
+        Err(_) => {
+            let err_code = unsafe { GetLastError() };
+            Err(WindowsError {
+                err_type: WindowsErrorType::CursorLoadError,
+                err_code: Some(Win32ErrorCode(err_code.0)),
+                err_body: "Failed to load cursor.".to_string(),
+            })
+        }
+    }
+}
+
+pub(crate) fn wgl_get_proc_address(
+    name: PCSTR,
+) -> Result<unsafe extern "system" fn() -> isize, WindowsError> {
+    let result = unsafe { wglGetProcAddress(name) };
+    match result {
+        Some(function) => Ok(function),
+        None => {
+            let err_code = unsafe { GetLastError() };
+            Err(WindowsError {
+                err_type: WindowsErrorType::WGLExtensionLoadError,
+                err_code: Some(Win32ErrorCode(err_code.0)),
+                err_body: "Failed to load wgl extension.".to_string(),
+            })
+        }
+    }
+}
+
+pub(crate) fn destroy_window(hwnd: HWND) -> Result<(), WindowsError> {
+    let result = unsafe { DestroyWindow(hwnd) };
+    if result == TRUE {
+        Ok(())
+    } else {
+        let err_code = unsafe { GetLastError() };
+        Err(WindowsError {
+            err_type: WindowsErrorType::WGLContextSelectingError,
+            err_code: Some(Win32ErrorCode(err_code.0)),
+            err_body: "Failed to select wgl context.".to_string(),
+        })
+    }
 }

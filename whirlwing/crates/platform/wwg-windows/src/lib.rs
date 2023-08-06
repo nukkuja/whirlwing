@@ -5,39 +5,39 @@ mod windows_utils;
 
 macro_rules! load_wgl_extension {
     ($name_str:literal into $name:ident($($args:ty),*)) => {
-        let function_holder = $crate::wglGetProcAddress($crate::s!($name_str)).unwrap();
+        let function_holder = $crate::wgl_get_proc_address($crate::s!($name_str))?;
         #[allow(non_snake_case)]
-        let $name = std::mem::transmute::
+        let $name = unsafe { std::mem::transmute::
         <unsafe extern "system" fn () -> isize,
         unsafe extern "system" fn($($args),*)>
-        (function_holder);
+        (function_holder) };
     };
 
     ($name_str:literal into $name:ident($($args:ty),*) -> $ret:ty) => {
-        let function_holder = $crate::wglGetProcAddress($crate::s!($name_str)).unwrap();
+        let function_holder = $crate::wgl_get_proc_address($crate::s!($name_str))?;
         #[allow(non_snake_case)]
-        let $name = std::mem::transmute::
+        let $name = unsafe { std::mem::transmute::
         <unsafe extern "system" fn () -> isize,
         unsafe extern "system" fn($($args),*) -> $ret>
-        (function_holder);
+        (function_holder) };
     };
 
         ($name_str:literal into $name:ident($($args:ty),*,)) => {
-        let function_holder = $crate::wglGetProcAddress($crate::s!($name_str)).unwrap();
+        let function_holder = $crate::wgl_get_proc_address($crate::s!($name_str))?;
         #[allow(non_snake_case)]
-        let $name = std::mem::transmute::
+        let $name = unsafe { std::mem::transmute::
         <unsafe extern "system" fn () -> isize,
         unsafe extern "system" fn($($args),*)>
-        (function_holder);
+        (function_holder) };
     };
 
     ($name_str:literal into $name:ident($($args:ty),*,) -> $ret:ty) => {
-        let function_holder = $crate::wglGetProcAddress($crate::s!($name_str)).unwrap();
+        let function_holder = $crate::wgl_get_proc_address($crate::s!($name_str))?;
         #[allow(non_snake_case)]
-        let $name = std::mem::transmute::
+        let $name = unsafe { std::mem::transmute::
         <unsafe extern "system" fn () -> isize,
         unsafe extern "system" fn($($args),*) -> $ret>
-        (function_holder);
+        (function_holder) };
     };
 }
 
@@ -111,21 +111,18 @@ const GL_FALSE: i32 = 0;
 
 #[allow(unused_imports)]
 use windows::{
-    s, w,
     core::{PCSTR, PCWSTR},
+    s, w,
     Win32::{
         Foundation::*,
-        UI::WindowsAndMessaging::*,
+        Graphics::{Gdi::*, OpenGL::*},
         System::LibraryLoader::*,
-        Graphics::{
-            Gdi::*,
-            OpenGL::*,
-        },
+        UI::WindowsAndMessaging::*,
     },
 };
 
-use windows_utils::*;
 use windows_error::*;
+use windows_utils::*;
 
 struct WindowsWindow {
     hwnd: HWND,
@@ -176,7 +173,7 @@ pub fn create_window() -> Result<(), WindowsError> {
         iLayerType: PFD_MAIN_PLANE,
         ..Default::default()
     };
-    let fake_wnd_pixel_format = choose_pixel_format(fake_wnd_dc, &pfd)?;
+    let fake_wnd_pixel_format: i32 = choose_pixel_format(fake_wnd_dc, &pfd)?;
     wwg_log::wwg_trace!("Pixel format for fake window is chosen.");
     set_pixel_format(fake_wnd_dc, fake_wnd_pixel_format, &pfd)?;
     wwg_log::wwg_trace!("Pixel format for fake window is set.");
@@ -189,18 +186,125 @@ pub fn create_window() -> Result<(), WindowsError> {
     load_gl_functions()?;
     wwg_log::wwg_trace!("OpenGL functions are loaded.");
 
-    // unsafe {
-    //     ShowWindow(h_fake_wnd, SW_SHOW);
-    //     gl::Viewport(0, 0, 640, 480);
-    //     gl::ClearColor(1f32, 0f32, 1f32, 1f32);
-    //     gl::Clear(gl::COLOR_BUFFER_BIT);
-    //     SwapBuffers(GetDC(h_fake_wnd));
-    // }
-    
+    let class_name = w!("Whirlwing window class");
+    let actual_wnd_class = WNDCLASSEXW {
+        cbSize: std::mem::size_of::<WNDCLASSEXW>() as u32,
+        style: CS_OWNDC,
+        lpfnWndProc: Some(fake_wnd_proc),
+        hInstance: h_instance,
+        hIcon: HICON(0),
+        hCursor: load_cursor_w(IDC_ARROW)?,
+        lpszClassName: class_name,
+        ..Default::default()
+    };
+
+    register_window_class(actual_wnd_class)?;
+    wwg_log::wwg_trace!("Real window class is created");
+
+    let hwnd = new_window(
+        WS_EX_LEFT,
+        class_name,
+        w!("Whirlwing window"),
+        WS_OVERLAPPED | WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU,
+        1280,
+        720,
+        HWND(0),
+        HMENU(0),
+        h_instance,
+        None,
+    )?;
+    wwg_log::wwg_trace!("Real window is created");
+    let dc = get_device_context(hwnd)?;
+    wwg_log::wwg_trace!("Got device context for real window.");
+
+    load_wgl_extension!("wglChoosePixelFormatARB" into
+    wglChoosePixelFormatARB(HDC, *const i32, *const f32, u32, *mut i32, *mut u32) -> BOOL);
+
+    let attrib_list = [
+        WGL_DRAW_TO_WINDOW_ARB,
+        GL_TRUE,
+        WGL_SUPPORT_OPENGL_ARB,
+        GL_TRUE,
+        WGL_DOUBLE_BUFFER_ARB,
+        GL_TRUE,
+        WGL_PIXEL_TYPE_ARB,
+        WGL_TYPE_RGBA_ARB,
+        WGL_COLOR_BITS_ARB,
+        32,
+        WGL_DEPTH_BITS_ARB,
+        24,
+        WGL_STENCIL_BITS_ARB,
+        8,
+        0,
+    ];
+    let mut pixel_format = 0;
+    let mut num_formats = 0u32;
+
+    let result = unsafe {
+        wglChoosePixelFormatARB(
+            dc,
+            attrib_list.as_ptr(),
+            std::ptr::null(),
+            1,
+            &mut pixel_format,
+            &mut num_formats,
+        )
+    };
+    if result == FALSE {
+        return Err(WindowsError {
+            err_type: WindowsErrorType::WGLExtensionLoadError,
+            err_code: None,
+            err_body: "Failed to choose WGL pixel format.".to_string(),
+        });
+    }
+    set_pixel_format(dc, pixel_format, &pfd)?;
+    wwg_log::wwg_trace!("Set new pixel format for real window.");
+
+    load_wgl_extension!("wglCreateContextAttribsARB" into
+    wglCreateContextAttribsARB(HDC, HGLRC, *const i32) -> HGLRC);
+
+    let attribs_list = [
+        WGL_CONTEXT_MAJOR_VERSION_ARB,
+        3,
+        WGL_CONTEXT_MINOR_VERSION_ARB,
+        3,
+        WGL_CONTEXT_PROFILE_MASK_ARB,
+        WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+    ];
+
+    let hglrc = unsafe { wglCreateContextAttribsARB(dc, HGLRC(0), attribs_list.as_ptr()) };
+    if hglrc.0 == 0 {
+        let err_code = unsafe { GetLastError() };
+        return Err(WindowsError {
+            err_type: WindowsErrorType::WGLContextCreationErrorARB,
+            err_code: Some(Win32ErrorCode(err_code.0)),
+            err_body: "Failed to create WGL ARB context.".to_string(),
+        });
+    }
+
+    wgl_make_current_null()?;
+    wgl_delete_context(fake_wgl_context)?;
+    destroy_window(h_fake_wnd)?;
+    unregister_window_class(fake_wnd_class_name, h_instance)?;
+
+    wgl_make_current(dc, hglrc)?;
+
+    unsafe {
+        ShowWindow(hwnd, SW_SHOW);
+        gl::Viewport(0, 0, 1280, 720);
+        gl::ClearColor(1f32, 0f32, 1f32, 1f32);
+        gl::Clear(gl::COLOR_BUFFER_BIT);
+        SwapBuffers(dc);
+    }
     loop {}
     Ok(())
 }
 
-unsafe extern "system" fn fake_wnd_proc(h_wnd: HWND, msg: u32, w_param: WPARAM, l_param: LPARAM) -> LRESULT  {
+unsafe extern "system" fn fake_wnd_proc(
+    h_wnd: HWND,
+    msg: u32,
+    w_param: WPARAM,
+    l_param: LPARAM,
+) -> LRESULT {
     DefWindowProcW(h_wnd, msg, w_param, l_param)
 }

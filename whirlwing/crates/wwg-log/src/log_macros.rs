@@ -18,7 +18,6 @@ macro_rules! debug {
     };
 }
 
-
 #[macro_export]
 macro_rules! info {
     ($($args:tt),+) => {
