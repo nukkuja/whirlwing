@@ -254,10 +254,11 @@ impl wwg_window_internal::WindowingContext for WindowingContextWin32 {
             });
         }
 
+        unsafe { ShowWindow(hwnd, SW_SHOW); }
         Ok(WindowWin32::new(hwnd, dc, hglrc))
     }
 
-    fn destroy_context(self) -> Result<(), Self::Error> {
+    fn destroy_context(&mut self) -> Result<(), Self::Error> {
         unregister_window_class(self.wnd_class_name, self.hinstance)?;
 
         wgl_make_current(self.fake_dc, self.fake_rc)?;

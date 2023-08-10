@@ -1,4 +1,4 @@
-#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct WindowID(pub u32);
 
 pub use wwg_window_internal::*;

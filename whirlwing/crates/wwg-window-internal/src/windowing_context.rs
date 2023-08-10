@@ -15,5 +15,5 @@ pub trait WindowingContext {
         height: u32,
     ) -> Result<Self::Window, Self::Error>;
 
-    fn destroy_context(self) -> Result<(), Self::Error>;
+    fn destroy_context(&mut self) -> Result<(), Self::Error>;
 }

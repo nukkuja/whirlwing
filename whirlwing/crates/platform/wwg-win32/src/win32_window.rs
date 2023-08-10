@@ -28,6 +28,14 @@ impl wwg_window_internal::Window for WindowWin32 {
         wgl_make_current(self.device_context, self.rendering_context)
     }
 
+    fn draw_background(&self, r: f32, g: f32, b: f32, a: f32) {
+        unsafe {
+            gl::ClearColor(r, g, b, a);
+            gl::Clear(GL_COLOR_BUFFER_BIT);
+            SwapBuffers(self.device_context);
+        }
+    }
+
     fn destroy(self) -> Result<(), WindowsError> {
         wgl_make_current(self.device_context, self.rendering_context)?;
         wgl_make_current_null()?;
