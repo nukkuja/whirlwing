@@ -1,3 +1,71 @@
+pub(crate) const WGL_NUMBER_PIXEL_FORMATS_ARB: i32 = 0x2000;
+pub(crate) const WGL_DRAW_TO_WINDOW_ARB: i32 = 0x2001;
+pub(crate) const WGL_DRAW_TO_BITMAP_ARB: i32 = 0x2002;
+pub(crate) const WGL_ACCELERATION_ARB: i32 = 0x2003;
+pub(crate) const WGL_NEED_PALETTE_ARB: i32 = 0x2004;
+pub(crate) const WGL_NEED_SYSTEM_PALETTE_ARB: i32 = 0x2005;
+pub(crate) const WGL_SWAP_LAYER_BUFFERS_ARB: i32 = 0x2006;
+pub(crate) const WGL_SWAP_METHOD_ARB: i32 = 0x2007;
+pub(crate) const WGL_NUMBER_OVERLAYS_ARB: i32 = 0x2008;
+pub(crate) const WGL_NUMBER_UNDERLAYS_ARB: i32 = 0x2009;
+pub(crate) const WGL_TRANSPARENT_ARB: i32 = 0x200A;
+pub(crate) const WGL_TRANSPARENT_RED_VALUE_ARB: i32 = 0x2037;
+pub(crate) const WGL_TRANSPARENT_GREEN_VALUE_ARB: i32 = 0x2038;
+pub(crate) const WGL_TRANSPARENT_BLUE_VALUE_ARB: i32 = 0x2039;
+pub(crate) const WGL_TRANSPARENT_ALPHA_VALUE_ARB: i32 = 0x203A;
+pub(crate) const WGL_TRANSPARENT_INDEX_VALUE_ARB: i32 = 0x203B;
+pub(crate) const WGL_SHARE_DEPTH_ARB: i32 = 0x200C;
+pub(crate) const WGL_SHARE_STENCIL_ARB: i32 = 0x200D;
+pub(crate) const WGL_SHARE_ACCUM_ARB: i32 = 0x200E;
+pub(crate) const WGL_SUPPORT_GDI_ARB: i32 = 0x200F;
+pub(crate) const WGL_SUPPORT_OPENGL_ARB: i32 = 0x2010;
+pub(crate) const WGL_DOUBLE_BUFFER_ARB: i32 = 0x2011;
+pub(crate) const WGL_STEREO_ARB: i32 = 0x2012;
+pub(crate) const WGL_PIXEL_TYPE_ARB: i32 = 0x2013;
+pub(crate) const WGL_COLOR_BITS_ARB: i32 = 0x2014;
+pub(crate) const WGL_RED_BITS_ARB: i32 = 0x2015;
+pub(crate) const WGL_RED_SHIFT_ARB: i32 = 0x2016;
+pub(crate) const WGL_GREEN_BITS_ARB: i32 = 0x2017;
+pub(crate) const WGL_GREEN_SHIFT_ARB: i32 = 0x2018;
+pub(crate) const WGL_BLUE_BITS_ARB: i32 = 0x2019;
+pub(crate) const WGL_BLUE_SHIFT_ARB: i32 = 0x201A;
+pub(crate) const WGL_ALPHA_BITS_ARB: i32 = 0x201B;
+pub(crate) const WGL_ALPHA_SHIFT_ARB: i32 = 0x201C;
+pub(crate) const WGL_ACCUM_BITS_ARB: i32 = 0x201D;
+pub(crate) const WGL_ACCUM_RED_BITS_ARB: i32 = 0x201E;
+pub(crate) const WGL_ACCUM_GREEN_BITS_ARB: i32 = 0x201F;
+pub(crate) const WGL_ACCUM_BLUE_BITS_ARB: i32 = 0x2020;
+pub(crate) const WGL_ACCUM_ALPHA_BITS_ARB: i32 = 0x2021;
+pub(crate) const WGL_DEPTH_BITS_ARB: i32 = 0x2022;
+pub(crate) const WGL_STENCIL_BITS_ARB: i32 = 0x2023;
+pub(crate) const WGL_AUX_BUFFERS_ARB: i32 = 0x2024;
+
+pub(crate) const WGL_NO_ACCELERATION_ARB: i32 = 0x2025;
+pub(crate) const WGL_GENERIC_ACCELERATION_ARB: i32 = 0x2026;
+pub(crate) const WGL_FULL_ACCELERATION_ARB: i32 = 0x2027;
+
+pub(crate) const WGL_SWAP_EXCHANGE_ARB: i32 = 0x2028;
+pub(crate) const WGL_SWAP_COPY_ARB: i32 = 0x2029;
+pub(crate) const WGL_SWAP_UNDEFINED_ARB: i32 = 0x202A;
+
+pub(crate) const WGL_TYPE_RGBA_ARB: i32 = 0x202B;
+pub(crate) const WGL_TYPE_COLORINDEX_ARB: i32 = 0x202C;
+
+pub(crate) const WGL_CONTEXT_MAJOR_VERSION_ARB: i32 = 0x2091;
+pub(crate) const WGL_CONTEXT_MINOR_VERSION_ARB: i32 = 0x2092;
+pub(crate) const WGL_CONTEXT_LAYER_PLANE_ARB: i32 = 0x2093;
+pub(crate) const WGL_CONTEXT_FLAGS_ARB: i32 = 0x2094;
+pub(crate) const WGL_CONTEXT_PROFILE_MASK_ARB: i32 = 0x9126;
+
+pub(crate) const WGL_CONTEXT_DEBUG_BIT_ARB: i32 = 0x0001;
+pub(crate) const WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB: i32 = 0x0002;
+
+pub(crate) const WGL_CONTEXT_CORE_PROFILE_BIT_ARB: i32 = 0x00000001;
+pub(crate) const WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB: i32 = 0x00000002;
+
+pub(crate) const GL_TRUE: i32 = 1;
+pub(crate) const GL_FALSE: i32 = 0;
+
 #[allow(unused_imports)]
 use windows::{
     core::{IntoParam, PCSTR, PCWSTR},
@@ -10,9 +78,9 @@ use windows::{
     },
 };
 
-use crate::windows_error::*;
+use crate::win32_error::*;
 
-pub(crate) fn new_window<
+pub(crate) fn create_window<
     P0: IntoParam<PCWSTR>,
     P1: IntoParam<PCWSTR>,
     P2: IntoParam<HWND>,
@@ -104,7 +172,10 @@ pub(crate) fn register_window_class(class: WNDCLASSEXW) -> Result<u16, WindowsEr
     }
 }
 
-pub(crate) fn unregister_window_class(class_name: PCWSTR, h_instance: HMODULE) -> Result<(), WindowsError> {
+pub(crate) fn unregister_window_class(
+    class_name: PCWSTR,
+    h_instance: HMODULE,
+) -> Result<(), WindowsError> {
     let result = unsafe { UnregisterClassW(class_name, h_instance) };
     if result == TRUE {
         Ok(())
@@ -170,8 +241,9 @@ pub(crate) fn wgl_create_context(dc: HDC) -> Result<HGLRC, WindowsError> {
 
 pub(crate) fn wgl_delete_context(hglrc: HGLRC) -> Result<(), WindowsError> {
     let result = unsafe { wglDeleteContext(hglrc) };
-    if result == TRUE { Ok(()) }
-    else {
+    if result == TRUE {
+        Ok(())
+    } else {
         let err_code = unsafe { GetLastError() };
         Err(WindowsError {
             err_type: WindowsErrorType::WGLContextDeletionError,

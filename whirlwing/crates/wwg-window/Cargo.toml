@@ -11,4 +11,4 @@ wwg-log = { path = "../wwg-log" }
 wwg-events = { path = "../wwg-events" }
 
 [target.'cfg(windows)'.dependencies]
-wwg-windows = { path = "../platform/wwg-windows" }
+wwg-win32 = { path = "../platform/wwg-win32" }

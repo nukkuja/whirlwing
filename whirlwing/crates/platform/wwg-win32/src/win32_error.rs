@@ -60,7 +60,7 @@ impl std::fmt::Display for WindowsError {
         match &self.err_code {
             Some(err_code) => {
                 let output = format!(
-                    "Windows Error Code: {}\nError Type: {}\nError Message: {}",
+                    "Windows Error:\n{}\nError Type: {}\nError Message: {}",
                     err_code, self.err_type, self.err_body
                 );
 
@@ -84,6 +84,7 @@ pub struct Win32ErrorCode(pub u32);
 impl std::fmt::Display for Win32ErrorCode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
         let mut buffer = PWSTR(std::ptr::null_mut());
+        write!(f, "Windows Error Code: {}\n", self.0)?;
         unsafe {
             FormatMessageW(
                 FORMAT_MESSAGE_ALLOCATE_BUFFER
@@ -98,7 +99,7 @@ impl std::fmt::Display for Win32ErrorCode {
             );
         }
         if buffer.0.is_null() {
-            Err(std::fmt::Error)
+            write!(f, "Windows Error Message is empty.")
         } else {
             let buffer_array = unsafe { buffer.as_wide() };
             let mut string = String::new();
@@ -106,7 +107,7 @@ impl std::fmt::Display for Win32ErrorCode {
                 let char = decode_result.unwrap_or('�');
                 string.push(char);
             }
-            write!(f, "{}", string.trim())?;
+            write!(f, "Windows Error Message: {}", string.trim())?;
             unsafe {
                 let _ = LocalFree(HLOCAL(buffer.0 as isize));
             }
