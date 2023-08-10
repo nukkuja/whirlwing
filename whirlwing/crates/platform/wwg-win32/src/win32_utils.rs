@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 pub(crate) const WGL_NUMBER_PIXEL_FORMATS_ARB: i32 = 0x2000;
 pub(crate) const WGL_DRAW_TO_WINDOW_ARB: i32 = 0x2001;
 pub(crate) const WGL_DRAW_TO_BITMAP_ARB: i32 = 0x2002;
@@ -91,6 +93,8 @@ pub(crate) fn create_window<
     lpclassname: P0,
     lpwindowname: P1,
     dwstyle: WINDOW_STYLE,
+    pos_x: i32,
+    pos_y: i32,
     nwidth: i32,
     nheight: i32,
     hwndparent: P2,
@@ -120,8 +124,8 @@ pub(crate) fn create_window<
             lpclassname,
             lpwindowname,
             dwstyle,
-            100,
-            100,
+            pos_x,
+            pos_y,
             wnd_rect.right - wnd_rect.left,
             wnd_rect.bottom - wnd_rect.top,
             hwndparent,

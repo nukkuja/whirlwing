@@ -9,6 +9,8 @@ pub trait WindowingContext {
     fn create_window(
         &self,
         title: &str,
+        pos_x: u32,
+        pos_y: u32,
         width: u32,
         height: u32,
     ) -> Result<Self::Window, Self::Error>;

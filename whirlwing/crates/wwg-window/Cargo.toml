@@ -12,3 +12,4 @@ wwg-events = { path = "../wwg-events" }
 
 [target.'cfg(windows)'.dependencies]
 wwg-win32 = { path = "../platform/wwg-win32" }
+wwg-window-internal = { path = "../wwg-window-internal" }

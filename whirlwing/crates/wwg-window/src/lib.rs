@@ -1,14 +1,7 @@
-pub struct Window;
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
+pub struct WindowID(pub u32);
 
-impl Window {
-    #[cfg(target_os = "windows")]
-    pub fn new() -> Self {
-        match wwg_win32::create_wc_and_window() {
-            Ok(()) => (),
-            Err(error) => {
-                wwg_log::wwg_err!("{}", error);
-            }
-        };
-        Window
-    }
-}
+pub use wwg_window_internal::*;
+
+#[cfg(target_os = "windows")]
+pub use wwg_win32::{WindowWin32, WindowingContextWin32, WindowsError};

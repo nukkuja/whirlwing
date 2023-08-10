@@ -1,6 +1,6 @@
 macro_rules! load_wgl_extension {
     ($name_str:literal into $name:ident($($args:ty),*)) => {
-        let function_holder = $crate::wgl_get_proc_address($crate::s!($name_str))?;
+        let function_holder = $crate::win32_utils::wgl_get_proc_address($crate::win32_windowing_context::s!($name_str))?;
         #[allow(non_snake_case)]
         let $name = unsafe { std::mem::transmute::
         <unsafe extern "system" fn () -> isize,
@@ -9,7 +9,7 @@ macro_rules! load_wgl_extension {
     };
 
     ($name_str:literal into $name:ident($($args:ty),*) -> $ret:ty) => {
-        let function_holder = $crate::wgl_get_proc_address($crate::s!($name_str))?;
+        let function_holder = $crate::win32_utils::wgl_get_proc_address($crate::win32_windowing_context::s!($name_str))?;
         #[allow(non_snake_case)]
         let $name = unsafe { std::mem::transmute::
         <unsafe extern "system" fn () -> isize,
@@ -18,7 +18,7 @@ macro_rules! load_wgl_extension {
     };
 
         ($name_str:literal into $name:ident($($args:ty),*,)) => {
-        let function_holder = $crate::wgl_get_proc_address($crate::s!($name_str))?;
+        let function_holder = $crate::win32_utils::wgl_get_proc_address($crate::win32_windowing_context::s!($name_str))?;
         #[allow(non_snake_case)]
         let $name = unsafe { std::mem::transmute::
         <unsafe extern "system" fn () -> isize,
@@ -27,7 +27,7 @@ macro_rules! load_wgl_extension {
     };
 
     ($name_str:literal into $name:ident($($args:ty),*,) -> $ret:ty) => {
-        let function_holder = $crate::wgl_get_proc_address($crate::s!($name_str))?;
+        let function_holder = $crate::win32_utils::wgl_get_proc_address($crate::win32_windowing_context::s!($name_str))?;
         #[allow(non_snake_case)]
         let $name = unsafe { std::mem::transmute::
         <unsafe extern "system" fn () -> isize,
@@ -93,6 +93,8 @@ impl wwg_window_internal::WindowingContext for WindowingContextWin32 {
             fake_wnd_class_name,
             w!("Fake Window"),
             WINDOW_STYLE::default(),
+            0,
+            0,
             200,
             200,
             None,
@@ -156,6 +158,8 @@ impl wwg_window_internal::WindowingContext for WindowingContextWin32 {
     fn create_window(
         &self,
         title: &str,
+        pos_x: u32,
+        pos_y: u32,
         width: u32,
         height: u32,
     ) -> Result<WindowWin32, WindowsError> {
@@ -168,6 +172,8 @@ impl wwg_window_internal::WindowingContext for WindowingContextWin32 {
             self.wnd_class_name,
             title,
             WS_OVERLAPPED | WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU,
+            pos_x as i32,
+            pos_y as i32,
             width as i32,
             height as i32,
             HWND(0),
