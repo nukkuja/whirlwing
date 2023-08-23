@@ -1,8 +1,7 @@
-#[allow(dead_code)]
 #[derive(Debug)]
 pub struct Event {
-    event_type: EventType,
-    category: EventCategory,
+    pub event_type: EventType,
+    pub category: EventCategory,
 }
 
 impl Event {
@@ -21,14 +20,17 @@ impl Event {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum EventType {
     ApplicationExit,
+    KeyPressed { key: char, repeats: i32 },
+    KeyReleased { key: char },
     MouseMoved { x_offset: i32, y_offset: i32 },
+    LeftMouseButtonPressed { x: i32, y: i32 },
 }
 
 bitflags::bitflags! {
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct EventCategory : u32 {
-        const WindowEvent =     0b00000001;
-        const MouseEvent =      0b00000010;
-        const KeyboardEvent =   0b00000100;
+        const WindowEvent   = 0b00000001;
+        const MouseEvent    = 0b00000010;
+        const KeyboardEvent = 0b00000100;
     }
 }

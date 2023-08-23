@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 wwg-window-internal = { path = "../../wwg-window-internal" }
+wwg-events = { path = "../../wwg-events" }
 wwg-log = { path = "../../wwg-log" }
 gl = "0.14.0"
 

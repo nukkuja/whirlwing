@@ -2,3 +2,4 @@
 pub use wwg_log;
 
 pub mod app;
+pub mod window;
