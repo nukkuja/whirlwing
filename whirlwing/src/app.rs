@@ -46,9 +46,8 @@ pub struct Application;
 
 impl Application {
     #[cfg(target_os = "windows")]
-    pub fn new(
-        descriptor: WindowDescriptor,
-    ) -> app_internal::Application<WindowWin32> {
+    #[allow(clippy::new_ret_no_self)]
+    pub fn new(descriptor: WindowDescriptor) -> app_internal::Application<WindowWin32> {
         app_internal::Application::new(descriptor)
     }
 }

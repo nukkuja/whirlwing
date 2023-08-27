@@ -84,7 +84,7 @@ pub struct Win32ErrorCode(pub u32);
 impl std::fmt::Display for Win32ErrorCode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
         let mut buffer = PWSTR(std::ptr::null_mut());
-        write!(f, "Windows Error Code: {}\n", self.0)?;
+        writeln!(f, "Windows Error Code: {}", self.0)?;
         unsafe {
             FormatMessageW(
                 FORMAT_MESSAGE_ALLOCATE_BUFFER

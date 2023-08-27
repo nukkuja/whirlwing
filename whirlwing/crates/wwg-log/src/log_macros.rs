@@ -4,7 +4,7 @@ macro_rules! trace {
         let msg = $crate::log_utils::_format_log_message_trace(format_args!($($args),+));
         unsafe {
             $crate::log_utils::LOG.print(msg);
-        }
+        };
     };
 }
 
@@ -14,7 +14,7 @@ macro_rules! debug {
         let msg = $crate::log_utils::_format_log_message_debug(format_args!($($args),+));
         unsafe {
             $crate::log_utils::LOG.print(msg);
-        }
+        };
     };
 }
 
@@ -24,7 +24,7 @@ macro_rules! info {
         let msg = $crate::log_utils::_format_log_message_info(format_args!($($args),+));
         unsafe {
             $crate::log_utils::LOG.print(msg);
-        }
+        };
     };
 }
 
@@ -34,7 +34,7 @@ macro_rules! warn {
         let msg = $crate::log_utils::_format_log_message_warn(format_args!($($args),+));
         unsafe {
             $crate::log_utils::LOG.print(msg);
-        }
+        };
     };
 }
 
@@ -44,8 +44,8 @@ macro_rules! err {
         let msg = $crate::log_utils::_format_log_message_err(format_args!($($args),+));
         unsafe {
             $crate::log_utils::LOG.print(msg);
-        }
-    }
+        };
+    };
 }
 
 #[cfg(feature = "engine_log")]
@@ -55,7 +55,7 @@ macro_rules! wwg_trace {
         let msg = $crate::log_utils::_format_log_engine_message_trace(format_args!($($args),+));
         unsafe {
             $crate::log_utils::LOG_ENGINE.print(msg);
-        }
+        };
     };
 }
 
@@ -66,7 +66,7 @@ macro_rules! wwg_debug {
         let msg = $crate::log_utils::_format_log_engine_message_debug(format_args!($($args),+));
         unsafe {
             $crate::log_utils::LOG_ENGINE.print(msg);
-        }
+        };
     };
 }
 
@@ -77,7 +77,7 @@ macro_rules! wwg_info {
         let msg = $crate::log_utils::_format_log_engine_message_info(format_args!($($args),+));
         unsafe {
             $crate::log_utils::LOG_ENGINE.print(msg);
-        }
+        };
     };
 }
 
@@ -88,7 +88,7 @@ macro_rules! wwg_warn {
         let msg = $crate::log_utils::_format_log_engine_message_warn(format_args!($($args),+));
         unsafe {
             $crate::log_utils::LOG_ENGINE.print(msg);
-        }
+        };
     };
 }
 
@@ -99,7 +99,7 @@ macro_rules! wwg_err {
         let msg = $crate::log_utils::_format_log_engine_message_err(format_args!($($args),+));
         unsafe {
             $crate::log_utils::LOG_ENGINE.print(msg);
-        }
+        };
     };
 }
 

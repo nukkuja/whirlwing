@@ -54,22 +54,21 @@ impl Logger {
 impl Log for Logger {
     fn print(&self, message: LogMessage) {
         if message.severity >= self.severity_filter {
-            let formatted;
-            if message.engine_log {
-                formatted = format!(
+            let formatted = if message.engine_log {
+                format!(
                     "WHIRLWING | {}\t| {} | {}",
                     message.severity,
                     message.format_time(),
                     message.content
-                );
+                )
             } else {
-                formatted = format!(
+                format!(
                     "LOG | {}\t| {} | {}",
                     message.severity,
                     message.format_time(),
                     message.content
-                );
-            }
+                )
+            };
             eprintln!("{}", message.colour.paint(formatted));
         }
     }

@@ -1,6 +1,8 @@
+#[allow(unused_imports)]
+use whirlwing::{app, log, window};
+
 fn main() {
-    let mut app =
-        whirlwing::app::Application::new(whirlwing::window::WindowDescriptor::default());
+    let mut app = app::Application::new(window::WindowDescriptor::default());
     app.run();
 
     let now = std::time::Instant::now();

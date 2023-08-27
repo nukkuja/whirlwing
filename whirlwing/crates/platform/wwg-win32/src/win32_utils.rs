@@ -82,6 +82,7 @@ use windows::{
 
 use crate::win32_error::*;
 
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn create_window<
     P0: IntoParam<PCWSTR>,
     P1: IntoParam<PCWSTR>,
@@ -309,12 +310,12 @@ pub(crate) fn load_gl_functions() -> Result<(), WindowsError> {
         let fn_name = PCSTR(format!("{string}\0").as_ptr());
         unsafe {
             match GetProcAddress(hmodule, fn_name) {
-                Some(val) => return val as *const std::ffi::c_void,
+                Some(val) => val as *const std::ffi::c_void,
                 None => match wglGetProcAddress(fn_name) {
-                    Some(val) => return val as *const std::ffi::c_void,
+                    Some(val) => val as *const std::ffi::c_void,
                     None => {
                         wwg_log::wwg_debug!("Failed to load {string} function.");
-                        return std::ptr::null();
+                        std::ptr::null()
                     }
                 },
             }
