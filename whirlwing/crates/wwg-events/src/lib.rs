@@ -1,7 +1,7 @@
 #[derive(Debug)]
 pub struct Event {
-    pub event_type: EventType,
-    pub category: EventCategory,
+    event_type: EventType,
+    category: EventCategory,
 }
 
 impl Event {
@@ -14,6 +14,10 @@ impl Event {
 
     pub fn event_type(&self) -> EventType {
         self.event_type
+    }
+
+    pub fn event_category(&self) -> EventCategory {
+        self.category
     }
 }
 

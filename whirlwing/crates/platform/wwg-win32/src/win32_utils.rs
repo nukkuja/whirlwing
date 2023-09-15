@@ -369,3 +369,7 @@ pub(crate) fn destroy_window(hwnd: HWND) -> Result<(), WindowsError> {
         })
     }
 }
+
+pub(crate) fn vk_into_keycode() {
+    
+}

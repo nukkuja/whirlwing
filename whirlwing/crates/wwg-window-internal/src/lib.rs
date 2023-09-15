@@ -1,3 +1,6 @@
+use std::collections::VecDeque;
+use wwg_events::Event;
+
 pub trait Window {
     type Error: std::fmt::Display;
 
@@ -14,4 +17,6 @@ pub trait Window {
     fn destroy(&mut self) -> Result<(), Self::Error>;
 
     fn draw_background(&mut self);
+
+    fn receive_events(&self) -> VecDeque<Event>;
 }

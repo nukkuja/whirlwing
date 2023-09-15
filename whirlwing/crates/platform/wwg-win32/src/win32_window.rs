@@ -246,6 +246,8 @@ impl wwg_window_internal::Window for WindowWin32 {
             ShowWindow(hwnd, SW_SHOW);
         }
 
+        wwg_log::wwg_debug!("Window is successfully created!");
+
         Ok(WindowWin32 {
             hwnd,
             device_context: dc,
@@ -260,6 +262,7 @@ impl wwg_window_internal::Window for WindowWin32 {
     }
 
     fn destroy(&mut self) -> Result<(), WindowsError> {
+        wwg_log::wwg_debug!("Window is being properly destroyed.");
         wgl_make_current_null()?;
         wgl_delete_context(self.rendering_context)?;
         destroy_window(self.hwnd)?;
@@ -268,11 +271,32 @@ impl wwg_window_internal::Window for WindowWin32 {
 
     fn draw_background(&mut self) {
         unsafe {
+            wwg_log::wwg_trace!("draw_background is called.");
             gl::Viewport(0, 0, self.width, self.height);
             gl::ClearColor(1.0, 1.0, 0.0, 1.0);
             gl::Clear(GL_COLOR_BUFFER_BIT);
             SwapBuffers(self.device_context);
         }
+    }
+
+    fn receive_events(&self) -> std::collections::VecDeque<wwg_events::Event> {
+        use std::collections::VecDeque;
+        let mut events: VecDeque<wwg_events::Event> = VecDeque::new();
+        unsafe {
+            let mut message = MSG::default();
+            while PeekMessageW(&mut message, HWND(0), 0, 0, PM_REMOVE) != FALSE {
+                TranslateMessage(&message);
+                match message.message {
+                    WM_KEYDOWN => {
+                        let event_type = wwg_events::EventType::KeyPressed { key: message.wParam.0 as u8 as char, repeats: 0 };
+                        events.push_back(wwg_events::Event::new(event_type, wwg_events::EventCategory::KeyboardEvent));
+                    }
+                    _ => { DispatchMessageA(&message); }
+                }
+            }
+        }
+        wwg_log::wwg_trace!("Events received:\n{:#?}", events);
+        events
     }
 }
 

@@ -3,6 +3,7 @@ pub(super) mod app_internal {
 
     pub struct Application<W: Window> {
         pub window: W,
+        should_close: bool,
     }
 
     impl<W, E> Application<W>
@@ -18,7 +19,7 @@ pub(super) mod app_internal {
                 descriptor.width as i32,
                 descriptor.height as i32,
             ) {
-                Ok(window) => Application { window },
+                Ok(window) => Application { window, should_close: false },
                 Err(e) => {
                     wwg_log::wwg_err!("Failed to create window:\n{e}");
                     panic!()
@@ -27,7 +28,20 @@ pub(super) mod app_internal {
         }
 
         pub fn run(&mut self) {
-            self.window.draw_background();
+            while !self.should_close {
+                let events = self.window.receive_events();
+                for event in events {
+                    use wwg_events::EventType;
+                    let escape = 0x1B as char;
+                    match event.event_type() {
+                        EventType::KeyPressed { key: escape, .. } => self.should_close = true,
+                        _ => (),
+                    }
+                }
+                self.window.draw_background();   
+            }
+
+            wwg_log::wwg_debug!("Exiting application loop");
         }
     }
 
