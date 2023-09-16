@@ -1,3 +1,5 @@
+pub mod input_bindings;
+
 #[derive(Debug)]
 pub struct Event {
     event_type: EventType,

@@ -2,7 +2,7 @@
 use whirlwing::{app, log, window};
 
 fn main() {
+    log::log_utils::set_engine_log_default(log::log_utils::Severity::Debug);
     let wd = window::WindowDescriptor::default().with_size(1280, 720);
-    let mut app = app::Application::new(wd);
-    app.run();
+    app::Application::new(wd).run();
 }

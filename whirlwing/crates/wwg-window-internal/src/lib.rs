@@ -16,7 +16,7 @@ pub trait Window {
 
     fn destroy(&mut self) -> Result<(), Self::Error>;
 
-    fn draw_background(&mut self);
+    fn render(&mut self);
 
     fn receive_events(&self) -> VecDeque<Event>;
 }

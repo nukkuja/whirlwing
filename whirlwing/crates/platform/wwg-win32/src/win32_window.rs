@@ -79,7 +79,7 @@ impl wwg_window_internal::Window for WindowWin32 {
         let fake_wnd_class = WNDCLASSEXW {
             cbSize: std::mem::size_of::<WNDCLASSEXW>() as u32,
             style: CS_OWNDC,
-            lpfnWndProc: Some(fake_wnd_proc),
+            lpfnWndProc: Some(crate::wnd_proc::fake_wnd_proc),
             hInstance: hinstance,
             lpszClassName: fake_wnd_class_name,
             ..Default::default()
@@ -269,9 +269,9 @@ impl wwg_window_internal::Window for WindowWin32 {
         unregister_window_class(self.wnd_class_name, self.hinstance)
     }
 
-    fn draw_background(&mut self) {
+    fn render(&mut self) {
         unsafe {
-            wwg_log::wwg_trace!("draw_background is called.");
+            wwg_log::wwg_trace!("render function is called.");
             gl::Viewport(0, 0, self.width, self.height);
             gl::ClearColor(1.0, 1.0, 0.0, 1.0);
             gl::Clear(GL_COLOR_BUFFER_BIT);
@@ -281,30 +281,35 @@ impl wwg_window_internal::Window for WindowWin32 {
 
     fn receive_events(&self) -> std::collections::VecDeque<wwg_events::Event> {
         use std::collections::VecDeque;
+        use wwg_events::*;
         let mut events: VecDeque<wwg_events::Event> = VecDeque::new();
         unsafe {
             let mut message = MSG::default();
             while PeekMessageW(&mut message, HWND(0), 0, 0, PM_REMOVE) != FALSE {
                 TranslateMessage(&message);
                 match message.message {
+                    WM_QUIT => {
+                        let event_type = EventType::ApplicationExit;
+                        events.push_back(Event::new(event_type, EventCategory::WindowEvent));
+                        wwg_log::wwg_debug!("Event received: {:#?}", event_type);
+                    },
                     WM_KEYDOWN => {
-                        let event_type = wwg_events::EventType::KeyPressed { key: message.wParam.0 as u8 as char, repeats: 0 };
-                        events.push_back(wwg_events::Event::new(event_type, wwg_events::EventCategory::KeyboardEvent));
+                        let event_type = wwg_events::EventType::KeyPressed {
+                            key: message.wParam.0 as u8 as char,
+                            repeats: 0,
+                        };
+                        wwg_log::wwg_debug!("Event received: {:#?}", event_type);
+                        events.push_back(wwg_events::Event::new(
+                            event_type,
+                            wwg_events::EventCategory::KeyboardEvent,
+                        ));
                     }
-                    _ => { DispatchMessageA(&message); }
+                    _ => {
+                        DispatchMessageA(&message);
+                    }
                 }
             }
         }
-        wwg_log::wwg_trace!("Events received:\n{:#?}", events);
         events
     }
-}
-
-unsafe extern "system" fn fake_wnd_proc(
-    h_wnd: HWND,
-    msg: u32,
-    w_param: WPARAM,
-    l_param: LPARAM,
-) -> LRESULT {
-    DefWindowProcW(h_wnd, msg, w_param, l_param)
 }
