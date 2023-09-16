@@ -1,6 +1,6 @@
 use crate::win32_error::*;
-use crate::win32_utils::GL_TRUE;
 use crate::win32_utils::*;
+use crate::win32_utils::{GL_FALSE, GL_TRUE};
 use crate::WindowsError;
 use windows::core::PCWSTR;
 use windows::Win32::Foundation::*;
@@ -273,8 +273,148 @@ impl wwg_window_internal::Window for WindowWin32 {
         unsafe {
             wwg_log::wwg_trace!("render function is called.");
             gl::Viewport(0, 0, self.width, self.height);
-            gl::ClearColor(1.0, 1.0, 0.0, 1.0);
-            gl::Clear(GL_COLOR_BUFFER_BIT);
+
+            gl::ClearColor(0.5, 0.5, 0.5, 1.0);
+            gl::Clear(gl::COLOR_BUFFER_BIT);
+
+            let vertex_buffer = [-0.5f32, -0.5, 0.0, 0.5, -0.5, 0.0, 0.0, 0.5, 0.0];
+
+            let mut vbo: u32 = 0;
+            gl::GenBuffers(1, &mut vbo);
+            gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
+            gl::BufferData(
+                gl::ARRAY_BUFFER,
+                (vertex_buffer.len() * std::mem::size_of::<f32>()) as isize,
+                vertex_buffer.as_ptr() as *const std::ffi::c_void,
+                gl::STATIC_DRAW,
+            );
+
+            let vertex_shader_source = std::ffi::CString::new(
+                r#"
+                #version 330 core
+                layout (location = 0) in vec3 aPos;
+            
+                void main() {
+                    gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
+                }
+                "#,
+            )
+            .expect("CString creation failed.");
+
+            let vertex_shader = gl::CreateShader(gl::VERTEX_SHADER);
+            gl::ShaderSource(
+                vertex_shader,
+                1,
+                &vertex_shader_source.as_ptr(),
+                std::ptr::null(),
+            );
+            gl::CompileShader(vertex_shader);
+
+            let mut success = i32::default();
+            gl::GetShaderiv(vertex_shader, gl::COMPILE_STATUS, &mut success);
+            if success == 0 {
+                let mut buffer = [0i8; 512];
+                gl::GetShaderInfoLog(
+                    vertex_shader,
+                    512,
+                    std::ptr::null_mut(),
+                    buffer.as_mut_ptr(),
+                );
+                let string = std::str::from_utf8(std::slice::from_raw_parts(
+                    buffer.as_ptr() as *const u8,
+                    buffer.len(),
+                ))
+                .unwrap();
+                wwg_log::wwg_err!("Shader compilation failed!\n{}", string);
+            }
+
+            let fragment_shader_source = std::ffi::CString::new(
+                r#"
+                #version 330 core
+                out vec4 FragColor;
+            
+                void main() {
+                    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
+                }
+                "#,
+            )
+            .expect("CString creation failed.");
+
+            let fragment_shader = gl::CreateShader(gl::FRAGMENT_SHADER);
+            gl::ShaderSource(
+                fragment_shader,
+                1,
+                &fragment_shader_source.as_ptr(),
+                std::ptr::null(),
+            );
+            gl::CompileShader(fragment_shader);
+
+            let mut success = i32::default();
+            gl::GetShaderiv(fragment_shader, gl::COMPILE_STATUS, &mut success);
+            if success == 0 {
+                let mut buffer = [0i8; 512];
+                gl::GetShaderInfoLog(
+                    vertex_shader,
+                    512,
+                    std::ptr::null_mut(),
+                    buffer.as_mut_ptr(),
+                );
+                let string = std::str::from_utf8(std::slice::from_raw_parts(
+                    buffer.as_ptr() as *const u8,
+                    buffer.len(),
+                ))
+                .unwrap();
+                wwg_log::wwg_err!("Shader compilation failed!\n{}", string);
+            }
+
+            let shader_program = gl::CreateProgram();
+            gl::AttachShader(shader_program, vertex_shader);
+            gl::AttachShader(shader_program, fragment_shader);
+            gl::LinkProgram(shader_program);
+
+            let mut success = i32::default();
+            gl::GetProgramiv(shader_program, gl::LINK_STATUS, &mut success);
+            if success == 0 {
+                let mut buffer = [0i8; 512];
+                gl::GetProgramInfoLog(
+                    shader_program,
+                    512,
+                    std::ptr::null_mut(),
+                    buffer.as_mut_ptr(),
+                );
+                let string = std::str::from_utf8(std::slice::from_raw_parts(
+                    buffer.as_ptr() as *const u8,
+                    buffer.len(),
+                ))
+                .unwrap();
+                wwg_log::wwg_err!("Shader compilation failed!\n{}", string);
+            }
+
+            let mut vao = u32::default();
+            gl::GenVertexArrays(1, &mut vao);
+            gl::BindVertexArray(vao);
+
+            gl::VertexAttribPointer(
+                0,
+                3,
+                GL_FLOAT,
+                GL_FALSE as u8,
+                3 * std::mem::size_of::<f32>() as i32,
+                std::ptr::null()
+            );
+            gl::EnableVertexAttribArray(0);
+
+            gl::UseProgram(shader_program);
+            gl::BindVertexArray(vao);
+            gl::DrawArrays(gl::TRIANGLES, 0, 3);
+
+            let error = gl::GetError();
+            if error != 0 {
+                wwg_log::wwg_err!("OpenGL error: {error}");
+            } else {
+                wwg_log::wwg_debug!("No OpenGL errors.");
+            }
+
             SwapBuffers(self.device_context);
         }
     }
@@ -292,7 +432,7 @@ impl wwg_window_internal::Window for WindowWin32 {
                         let event_type = EventType::ApplicationExit;
                         events.push_back(Event::new(event_type, EventCategory::WindowEvent));
                         wwg_log::wwg_debug!("Event received: {:#?}", event_type);
-                    },
+                    }
                     WM_KEYDOWN => {
                         let event_type = wwg_events::EventType::KeyPressed {
                             key: message.wParam.0 as u8 as char,

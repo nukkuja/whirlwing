@@ -12,10 +12,9 @@ pub(crate) unsafe extern "system" fn wnd_proc(
             PostQuitMessage(0);
             LRESULT(0)
         }
-        _ => DefWindowProcW(h_wnd, msg, w_param, l_param)
+        _ => DefWindowProcW(h_wnd, msg, w_param, l_param),
     }
 }
-
 
 pub(crate) unsafe extern "system" fn fake_wnd_proc(
     h_wnd: HWND,

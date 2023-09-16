@@ -32,6 +32,7 @@ pub(super) mod app_internal {
         }
 
         pub fn run(mut self) {
+            self.window.render();
             while !self.should_close {
                 let events = self.window.receive_events();
                 for event in events {
@@ -42,7 +43,6 @@ pub(super) mod app_internal {
                         _ => (),
                     }
                 }
-                self.window.render();
             }
 
             wwg_log::wwg_debug!("Exiting application loop");
