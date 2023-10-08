@@ -1,6 +1,6 @@
 #[macro_export]
 macro_rules! trace {
-    ($($args:tt),+) => {
+    ($($args:expr),+) => {
         let msg = $crate::log_utils::_format_log_message_trace(format_args!($($args),+));
         unsafe {
             $crate::log_utils::LOG.print(msg);
@@ -10,7 +10,7 @@ macro_rules! trace {
 
 #[macro_export]
 macro_rules! debug {
-    ($($args:tt),+) => {
+    ($($args:expr),+) => {
         let msg = $crate::log_utils::_format_log_message_debug(format_args!($($args),+));
         unsafe {
             $crate::log_utils::LOG.print(msg);
@@ -20,7 +20,7 @@ macro_rules! debug {
 
 #[macro_export]
 macro_rules! info {
-    ($($args:tt),+) => {
+    ($($args:expr),+) => {
         let msg = $crate::log_utils::_format_log_message_info(format_args!($($args),+));
         unsafe {
             $crate::log_utils::LOG.print(msg);
@@ -30,7 +30,7 @@ macro_rules! info {
 
 #[macro_export]
 macro_rules! warn {
-    ($($args:tt),+) => {
+    ($($args:expr),+) => {
         let msg = $crate::log_utils::_format_log_message_warn(format_args!($($args),+));
         unsafe {
             $crate::log_utils::LOG.print(msg);
@@ -40,7 +40,7 @@ macro_rules! warn {
 
 #[macro_export]
 macro_rules! err {
-    ($($args:tt),+) => {
+    ($($args:expr),+) => {
         let msg = $crate::log_utils::_format_log_message_err(format_args!($($args),+));
         unsafe {
             $crate::log_utils::LOG.print(msg);
@@ -51,7 +51,7 @@ macro_rules! err {
 #[cfg(feature = "engine_log")]
 #[macro_export]
 macro_rules! wwg_trace {
-    ($($args:tt),+) => {
+    ($($args:expr),+) => {
         let msg = $crate::log_utils::_format_log_engine_message_trace(format_args!($($args),+));
         unsafe {
             $crate::log_utils::LOG_ENGINE.print(msg);
@@ -62,7 +62,7 @@ macro_rules! wwg_trace {
 #[cfg(feature = "engine_log")]
 #[macro_export]
 macro_rules! wwg_debug {
-    ($($args:tt),+) => {
+    ($($args:expr),+) => {
         let msg = $crate::log_utils::_format_log_engine_message_debug(format_args!($($args),+));
         unsafe {
             $crate::log_utils::LOG_ENGINE.print(msg);
@@ -73,7 +73,7 @@ macro_rules! wwg_debug {
 #[cfg(feature = "engine_log")]
 #[macro_export]
 macro_rules! wwg_info {
-    ($($args:tt),+) => {
+    ($($args:expr),+) => {
         let msg = $crate::log_utils::_format_log_engine_message_info(format_args!($($args),+));
         unsafe {
             $crate::log_utils::LOG_ENGINE.print(msg);
@@ -84,7 +84,7 @@ macro_rules! wwg_info {
 #[cfg(feature = "engine_log")]
 #[macro_export]
 macro_rules! wwg_warn {
-    ($($args:tt),+) => {
+    ($($args:expr),+) => {
         let msg = $crate::log_utils::_format_log_engine_message_warn(format_args!($($args),+));
         unsafe {
             $crate::log_utils::LOG_ENGINE.print(msg);
@@ -95,7 +95,7 @@ macro_rules! wwg_warn {
 #[cfg(feature = "engine_log")]
 #[macro_export]
 macro_rules! wwg_err {
-    ($($args:tt),+) => {
+    ($($args:expr),+) => {
         let msg = $crate::log_utils::_format_log_engine_message_err(format_args!($($args),+));
         unsafe {
             $crate::log_utils::LOG_ENGINE.print(msg);
@@ -106,29 +106,29 @@ macro_rules! wwg_err {
 #[cfg(not(feature = "engine_log"))]
 #[macro_export]
 macro_rules! wwg_trace {
-    ($($_:tt),+) => {};
+    ($($_:expr),+) => {};
 }
 
 #[cfg(not(feature = "engine_log"))]
 #[macro_export]
 macro_rules! wwg_debug {
-    ($($_:tt),+) => {};
+    ($($_:expr),+) => {};
 }
 
 #[cfg(not(feature = "engine_log"))]
 #[macro_export]
 macro_rules! wwg_info {
-    ($($_:tt),+) => {};
+    ($($_:expr),+) => {};
 }
 
 #[cfg(not(feature = "engine_log"))]
 #[macro_export]
 macro_rules! wwg_warn {
-    ($($_:tt),+) => {};
+    ($($_:expr),+) => {};
 }
 
 #[cfg(not(feature = "engine_log"))]
 #[macro_export]
 macro_rules! wwg_err {
-    ($($_:tt),+) => {};
+    ($($_:expr),+) => {};
 }

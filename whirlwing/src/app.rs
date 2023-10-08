@@ -11,7 +11,10 @@ use std::num::NonZeroU32;
 use std::str::from_utf8_unchecked;
 use winit::event::{Event, WindowEvent};
 
-struct Renderer;
+struct Renderer {
+    vertex_array: u32,
+    shader_program: u32,
+}
 
 impl Renderer {
     fn new(display: &Display) -> Self {
@@ -24,27 +27,17 @@ impl Renderer {
             gl::Viewport(0, 0, 800, 600);
         }
 
-        #[rustfmt::skip]
-        let vertices = [
-            -0.5f32, -0.5f32, 0.0f32,
-             0.5f32, -0.5f32, 0.0f32,
-             0.0f32,  0.5f32, 0.0f32
-        ];
-
         unsafe {
             let mut vbo = 0;
             gl::GenBuffers(1, &mut vbo);
 
-            gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
-            gl::BufferData(
-                gl::ARRAY_BUFFER,
-                std::mem::size_of_val(&vertices) as isize,
-                vertices.as_ptr() as *const std::ffi::c_void,
-                gl::STATIC_DRAW,
-            );
-
             let vertex_shader = gl::CreateShader(gl::VERTEX_SHADER);
-            gl::ShaderSource(vertex_shader, 1, &(VERTEX_SHADER.as_ptr() as *const i8), std::ptr::null());
+            gl::ShaderSource(
+                vertex_shader,
+                1,
+                &(VERTEX_SHADER.as_ptr() as *const i8),
+                std::ptr::null(),
+            );
             gl::CompileShader(vertex_shader);
 
             let mut success = 0;
@@ -54,10 +47,17 @@ impl Renderer {
                 gl::GetShaderInfoLog(vertex_shader, 512, std::ptr::null_mut(), &mut buffer[0]);
                 let string = from_utf8_unchecked(&*(buffer.as_ptr() as *const [u8; 512]));
                 wwg_log::wwg_err!("VERTEX SHADER COMPILATION FAILED: {0}", string);
+                let error_code = gl::GetError();
+                wwg_log::wwg_err!("GL Error code: {error_code}");
             }
 
             let fragment_shader = gl::CreateShader(gl::FRAGMENT_SHADER);
-            gl::ShaderSource(fragment_shader, 1, &(FRAGMENT_SHADER.as_ptr() as *const i8), std::ptr::null());
+            gl::ShaderSource(
+                fragment_shader,
+                1,
+                &(FRAGMENT_SHADER.as_ptr() as *const i8),
+                std::ptr::null(),
+            );
             gl::CompileShader(fragment_shader);
 
             let mut success = 0;
@@ -66,7 +66,7 @@ impl Renderer {
             if success == 0 {
                 gl::GetShaderInfoLog(fragment_shader, 512, std::ptr::null_mut(), &mut buffer[0]);
                 let string = from_utf8_unchecked(&*(buffer.as_ptr() as *const [u8; 512]));
-                wwg_log::wwg_err!("VERTEX SHADER COMPILATION FAILED: {0}", string);
+                wwg_log::wwg_err!("FRAGMENT SHADER COMPILATION FAILED: {0}", string);
             }
 
             let shader_program = gl::CreateProgram();
@@ -76,24 +76,61 @@ impl Renderer {
 
             let mut success = 0;
             let mut buffer = [0i8; 512];
-            gl::GetShaderiv(shader_program, gl::LINK_STATUS, &mut success);
+            gl::GetProgramiv(shader_program, gl::LINK_STATUS, &mut success);
             if success == 0 {
                 gl::GetProgramInfoLog(shader_program, 512, std::ptr::null_mut(), &mut buffer[0]);
                 let string = from_utf8_unchecked(&*(buffer.as_ptr() as *const [u8; 512]));
-                wwg_log::wwg_err!("VERTEX SHADER COMPILATION FAILED: {0}", string);
+                wwg_log::wwg_err!("SHADER PROGRAM LINKING FAILED: {0}", string);
             }
 
             gl::DeleteShader(vertex_shader);
             gl::DeleteShader(fragment_shader);
-            gl::UseProgram(shader_program);
+
+            let mut vao = 0;
+            gl::GenVertexArrays(1, &mut vao);
+            gl::BindVertexArray(vao);
+
+            gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
+            gl::BufferData(
+                gl::ARRAY_BUFFER,
+                std::mem::size_of_val(&VERTICES) as isize,
+                VERTICES.as_ptr() as *const std::ffi::c_void,
+                gl::STATIC_DRAW,
+            );
+
+            gl::VertexAttribPointer(
+                0,
+                3,
+                gl::FLOAT,
+                gl::FALSE,
+                3 * std::mem::size_of::<f32>() as i32,
+                std::ptr::null(),
+            );
+            gl::EnableVertexAttribArray(0);
+
+            wwg_log::wwg_info!("vao: {vao}, shader_program: {shader_program}");
+            Renderer {
+                vertex_array: vao,
+                shader_program,
+            }
         }
-        Renderer
     }
     fn resize(&self, width: i32, height: i32) {
         unsafe {
             gl::Viewport(0, 0, width, height);
         }
     }
+    fn redraw(&self) {
+        unsafe {
+            gl::BindVertexArray(self.vertex_array);
+            gl::UseProgram(self.shader_program);
+            gl::DrawArrays(gl::TRIANGLES, 0, 3);
+        }
+    }
+}
+
+impl Drop for Renderer {
+    fn drop(&mut self) {}
 }
 
 pub fn run() {
@@ -158,81 +195,94 @@ pub fn run() {
     let mut renderer: Option<Renderer> = None;
     let mut state = None;
 
-    event_loop.run(move |event, elwt, control_flow| match event {
-        Event::Resumed => {
-            let window = window.take().unwrap_or_else(|| {
-                let window_builder = winit::window::WindowBuilder::new()
-                    .with_title("Whirlwing Window")
-                    .with_inner_size(winit::dpi::PhysicalSize::new(800, 600))
-                    .with_transparent(true);
-                glutin_winit::finalize_window(&elwt, window_builder, &gl_config).unwrap()
-            });
-            let attributes = window.build_surface_attributes(<_>::default());
+    event_loop.run(move |event, elwt, control_flow| {
+        control_flow.set_poll();
+        match event {
+            Event::Resumed => {
+                let window = window.take().unwrap_or_else(|| {
+                    let window_builder = winit::window::WindowBuilder::new()
+                        .with_title("Whirlwing Window")
+                        .with_inner_size(winit::dpi::PhysicalSize::new(800, 600))
+                        .with_transparent(true);
+                    glutin_winit::finalize_window(&elwt, window_builder, &gl_config).unwrap()
+                });
+                let attributes = window.build_surface_attributes(<_>::default());
 
-            let gl_surface = unsafe {
-                gl_display
-                    .create_window_surface(&gl_config, &attributes)
+                let gl_surface = unsafe {
+                    gl_display
+                        .create_window_surface(&gl_config, &attributes)
+                        .unwrap()
+                };
+                let gl_context = not_current_gl_context
+                    .take()
                     .unwrap()
-            };
-            let gl_context = not_current_gl_context
-                .take()
-                .unwrap()
-                .make_current(&gl_surface)
-                .unwrap();
+                    .make_current(&gl_surface)
+                    .unwrap();
 
-            if let None = renderer {
-                renderer = Some(Renderer::new(&gl_display));
+                if let None = renderer {
+                    renderer = Some(Renderer::new(&gl_display));
+                    gl_surface.swap_buffers(&gl_context).unwrap();
+                }
+
+                if let Err(res) = gl_surface.set_swap_interval(
+                    &gl_context,
+                    glutin::surface::SwapInterval::Wait(NonZeroU32::new(1).unwrap()),
+                ) {
+                    wwg_log::wwg_warn!("Error setting vsync: {res}");
+                }
+
+                assert!(state.replace((gl_context, gl_surface, window)).is_none());
             }
-
-            if let Err(res) = gl_surface.set_swap_interval(
-                &gl_context,
-                glutin::surface::SwapInterval::Wait(NonZeroU32::new(1).unwrap()),
-            ) {
-                wwg_log::wwg_warn!("Error setting vsync: {res}");
+            Event::Suspended => {
+                let (gl_context, ..) = state.take().unwrap();
+                assert!(not_current_gl_context
+                    .replace(gl_context.make_not_current().unwrap())
+                    .is_none());
             }
-
-            assert!(state.replace((gl_context, gl_surface, window)).is_none());
-        }
-        Event::Suspended => {
-            let (gl_context, ..) = state.take().unwrap();
-            assert!(not_current_gl_context
-                .replace(gl_context.make_not_current().unwrap())
-                .is_none());
-        }
-        Event::WindowEvent { event, .. } => match event {
-            WindowEvent::Resized(size) => {
-                if size.width != 0 && size.height != 0 {
-                    if let Some((gl_context, gl_surface, _)) = &state {
-                        gl_surface.resize(
-                            &gl_context,
-                            NonZeroU32::new(size.width).unwrap(),
-                            NonZeroU32::new(size.height).unwrap(),
-                        );
-                        if let Some(rend) = &renderer {
-                            rend.resize(size.width as i32, size.height as i32);
+            Event::WindowEvent { event, .. } => match event {
+                WindowEvent::Resized(size) => {
+                    if size.width != 0 && size.height != 0 {
+                        if let Some((gl_context, gl_surface, _)) = &state {
+                            gl_surface.resize(
+                                &gl_context,
+                                NonZeroU32::new(size.width).unwrap(),
+                                NonZeroU32::new(size.height).unwrap(),
+                            );
+                            if let Some(rend) = &renderer {
+                                rend.resize(size.width as i32, size.height as i32);
+                            }
                         }
                     }
                 }
-            }
-            WindowEvent::CloseRequested => {
-                control_flow.set_exit();
+                WindowEvent::CloseRequested => {
+                    control_flow.set_exit();
+                }
+                _ => (),
+            },
+            Event::MainEventsCleared => {
+                if let Some((gl_context, gl_surface, window)) = &state {
+                    unsafe {
+                        gl::ClearColor(0.2, 0.3, 0.3, 1.0);
+                        gl::Clear(gl::COLOR_BUFFER_BIT);
+                    }
+                    if let Some(rend) = &renderer {
+                        rend.redraw();
+                    }
+                    window.request_redraw();
+                    gl_surface.swap_buffers(gl_context).unwrap();
+                }
             }
             _ => (),
-        },
-        Event::MainEventsCleared => {
-            if let Some((gl_context, gl_surface, window)) = &state {
-                unsafe {
-                    gl::ClearColor(0.4, 0.9, 0.4, 1.0);
-                    gl::Clear(gl::COLOR_BUFFER_BIT);
-                }
-                window.request_redraw();
-
-                gl_surface.swap_buffers(gl_context).unwrap();
-            }
         }
-        _ => (),
     });
 }
+
+#[rustfmt::skip]
+const VERTICES: [f32; 9] = [
+    -0.5f32, -0.5f32, 0.0f32,
+     0.5f32, -0.5f32, 0.0f32,
+     0.0f32,  0.5f32, 0.0f32
+];
 
 const VERTEX_SHADER: &[u8] = b"
 #version 330 core
@@ -241,13 +291,11 @@ layout (location = 0) in vec3 aPos;
 void main()
 {
     gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
-}
-\0";
+}\0";
 
 const FRAGMENT_SHADER: &[u8] = b"
 #version 330 core
 out vec4 FragColor;
-
 void main()
 {
     FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
