@@ -2,3 +2,5 @@
 pub use wwg_log as log;
 
 pub mod app;
+
+pub(crate) mod shader;

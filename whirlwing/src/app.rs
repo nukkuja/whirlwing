@@ -8,12 +8,13 @@ use glutin_winit::{DisplayBuilder, GlWindow};
 use raw_window_handle::HasRawWindowHandle;
 use std::ffi::CString;
 use std::num::NonZeroU32;
-use std::str::from_utf8_unchecked;
-use winit::event::{Event, WindowEvent};
+use winit::event::{Event, WindowEvent, VirtualKeyCode};
+use crate::shader::Shader;
+
 
 struct Renderer {
     vertex_array: u32,
-    shader_program: u32,
+    shader: Shader,
 }
 
 impl Renderer {
@@ -31,60 +32,7 @@ impl Renderer {
             let mut vbo = 0;
             gl::GenBuffers(1, &mut vbo);
 
-            let vertex_shader = gl::CreateShader(gl::VERTEX_SHADER);
-            gl::ShaderSource(
-                vertex_shader,
-                1,
-                &(VERTEX_SHADER.as_ptr() as *const i8),
-                std::ptr::null(),
-            );
-            gl::CompileShader(vertex_shader);
-
-            let mut success = 0;
-            let mut buffer = [0i8; 512];
-            gl::GetShaderiv(vertex_shader, gl::COMPILE_STATUS, &mut success);
-            if success == 0 {
-                gl::GetShaderInfoLog(vertex_shader, 512, std::ptr::null_mut(), &mut buffer[0]);
-                let string = from_utf8_unchecked(&*(buffer.as_ptr() as *const [u8; 512]));
-                wwg_log::wwg_err!("VERTEX SHADER COMPILATION FAILED: {0}", string);
-                let error_code = gl::GetError();
-                wwg_log::wwg_err!("GL Error code: {error_code}");
-            }
-
-            let fragment_shader = gl::CreateShader(gl::FRAGMENT_SHADER);
-            gl::ShaderSource(
-                fragment_shader,
-                1,
-                &(FRAGMENT_SHADER.as_ptr() as *const i8),
-                std::ptr::null(),
-            );
-            gl::CompileShader(fragment_shader);
-
-            let mut success = 0;
-            let mut buffer = [0i8; 512];
-            gl::GetShaderiv(fragment_shader, gl::COMPILE_STATUS, &mut success);
-            if success == 0 {
-                gl::GetShaderInfoLog(fragment_shader, 512, std::ptr::null_mut(), &mut buffer[0]);
-                let string = from_utf8_unchecked(&*(buffer.as_ptr() as *const [u8; 512]));
-                wwg_log::wwg_err!("FRAGMENT SHADER COMPILATION FAILED: {0}", string);
-            }
-
-            let shader_program = gl::CreateProgram();
-            gl::AttachShader(shader_program, vertex_shader);
-            gl::AttachShader(shader_program, fragment_shader);
-            gl::LinkProgram(shader_program);
-
-            let mut success = 0;
-            let mut buffer = [0i8; 512];
-            gl::GetProgramiv(shader_program, gl::LINK_STATUS, &mut success);
-            if success == 0 {
-                gl::GetProgramInfoLog(shader_program, 512, std::ptr::null_mut(), &mut buffer[0]);
-                let string = from_utf8_unchecked(&*(buffer.as_ptr() as *const [u8; 512]));
-                wwg_log::wwg_err!("SHADER PROGRAM LINKING FAILED: {0}", string);
-            }
-
-            gl::DeleteShader(vertex_shader);
-            gl::DeleteShader(fragment_shader);
+            let shader = Shader::from_utf8_slices(VERTEX_SHADER, FRAGMENT_SHADER).unwrap();
 
             let mut vao = 0;
             gl::GenVertexArrays(1, &mut vao);
@@ -108,10 +56,9 @@ impl Renderer {
             );
             gl::EnableVertexAttribArray(0);
 
-            wwg_log::wwg_info!("vao: {vao}, shader_program: {shader_program}");
             Renderer {
                 vertex_array: vao,
-                shader_program,
+                shader,
             }
         }
     }
@@ -123,7 +70,7 @@ impl Renderer {
     fn redraw(&self) {
         unsafe {
             gl::BindVertexArray(self.vertex_array);
-            gl::UseProgram(self.shader_program);
+            self.shader.bind();
             gl::DrawArrays(gl::TRIANGLES, 0, 3);
         }
     }
@@ -240,6 +187,11 @@ pub fn run() {
                     .is_none());
             }
             Event::WindowEvent { event, .. } => match event {
+                WindowEvent::KeyboardInput { input, .. } => {
+                    if input.virtual_keycode.unwrap() == VirtualKeyCode::Escape {
+                        control_flow.set_exit();
+                    }
+                }
                 WindowEvent::Resized(size) => {
                     if size.width != 0 && size.height != 0 {
                         if let Some((gl_context, gl_surface, _)) = &state {

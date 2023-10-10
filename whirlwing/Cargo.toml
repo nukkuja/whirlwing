@@ -16,6 +16,7 @@ crate-type = ["rlib", "cdylib"]
 
 [dependencies]
 wwg-log = { path = "crates/wwg-log", optional = true }
+wwg-error = { path = "crates/wwg-error"}
 
 winit = "0.28.7"
 raw-window-handle = "0.5.2"

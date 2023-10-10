@@ -5,6 +5,7 @@ members = [
     "whirlwing-playground",
     
     "whirlwing/crates/wwg-log",
+    "whirlwing/crates/wwg-error",
 ]
 
 resolver = "2"
