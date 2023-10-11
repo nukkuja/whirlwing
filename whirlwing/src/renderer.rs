@@ -1,4 +1,4 @@
-use crate::shader::Shader;
+use crate::{shader::Shader, time::Time};
 use glutin::display::{Display, GlDisplay};
 use std::ffi::CString;
 
@@ -63,10 +63,14 @@ impl Renderer {
             gl::Viewport(0, 0, width, height);
         }
     }
-    pub(crate) fn redraw(&self) {
+    pub(crate) fn redraw(&self, time: &Time) {
         unsafe {
-            gl::BindVertexArray(self.vertex_array);
+            let green_color = (time.now().as_secs_f32().sin() / 2.0) + 0.5;
+            let vertex_color_location = gl::GetUniformLocation(self.shader.id(), b"ourColor\0".as_ptr() as *const i8);
             self.shader.bind();
+            gl::Uniform4f(vertex_color_location, 0.0, green_color, 0.0, 1.0);
+
+            gl::BindVertexArray(self.vertex_array);
             gl::DrawArrays(gl::TRIANGLES, 0, 3);
         }
     }

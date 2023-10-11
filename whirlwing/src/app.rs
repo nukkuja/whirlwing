@@ -1,4 +1,4 @@
-use crate::renderer::Renderer;
+use crate::{renderer::Renderer, time::Time};
 
 use std::num::NonZeroU32;
 
@@ -72,11 +72,13 @@ pub fn run() {
             .expect("Failed to create OpenGL Context.")
     });
 
-    let mut renderer: Option<Renderer> = None;
+    let mut renderer = None;
     let mut state = None;
+    let mut time = Time::start();
 
     event_loop.run(move |event, elwt, control_flow| {
         control_flow.set_poll();
+
         match event {
             Event::Resumed => {
                 let window = window.take().unwrap_or_else(|| {
@@ -84,7 +86,7 @@ pub fn run() {
                         .with_title("Whirlwing Window")
                         .with_inner_size(winit::dpi::PhysicalSize::new(800, 600))
                         .with_transparent(true);
-                    glutin_winit::finalize_window(&elwt, window_builder, &gl_config).unwrap()
+                    glutin_winit::finalize_window(elwt, window_builder, &gl_config).unwrap()
                 });
                 let attributes = window.build_surface_attributes(<_>::default());
 
@@ -99,7 +101,7 @@ pub fn run() {
                     .make_current(&gl_surface)
                     .unwrap();
 
-                if let None = renderer {
+                if renderer.is_none() {
                     renderer = Some(Renderer::new(&gl_display));
 
                 }
@@ -112,6 +114,7 @@ pub fn run() {
                 }
 
                 assert!(state.replace((gl_context, gl_surface, window)).is_none());
+                time.reset();
             }
             Event::Suspended => {
                 let (gl_context, ..) = state.take().unwrap();
@@ -129,7 +132,7 @@ pub fn run() {
                     if size.width != 0 && size.height != 0 {
                         if let Some((gl_context, gl_surface, _)) = &state {
                             gl_surface.resize(
-                                &gl_context,
+                                gl_context,
                                 NonZeroU32::new(size.width).unwrap(),
                                 NonZeroU32::new(size.height).unwrap(),
                             );
@@ -151,10 +154,13 @@ pub fn run() {
                         gl::Clear(gl::COLOR_BUFFER_BIT);
                     }
                     if let Some(rend) = &renderer {
-                        rend.redraw();
+                        rend.redraw(&time);
                     }
                     window.request_redraw();
                     gl_surface.swap_buffers(gl_context).unwrap();
+                    time.tick();
+                    wwg_log::wwg_trace!("FPS: {}", 1f32 / time.delta_time().as_secs_f32());
+                    wwg_log::wwg_trace!("Frame took {} seconds.", time.delta_time().as_secs_f32());
                 }
             }
             _ => (),

@@ -1,4 +1,6 @@
 use wwg_error::{WhirlwingError, WhirlwingErrorKind};
+
+#[cfg(debug_assertions)]
 use std::str::from_utf8_unchecked;
 
 pub(crate) struct Shader {
@@ -227,6 +229,10 @@ impl Shader {
 
             Ok(Shader { program_id })
         }
+    }
+
+    pub fn id(&self) -> u32 {
+        self.program_id
     }
 
     pub fn bind(&self) {
