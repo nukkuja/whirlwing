@@ -22,7 +22,9 @@ impl Renderer {
             let mut vbo = 0;
             gl::GenBuffers(1, &mut vbo);
 
-            let shader = Shader::new("res/shaders/vertex_shader.glsl", "res/shaders/fragment_shader.glsl");
+            let vertex_shader = include_str!("../../res/shaders/vertex_shader.glsl");
+            let fragment_shader = include_str!("../../res/shaders/fragment_shader.glsl");
+            let shader = Shader::from_str(vertex_shader, fragment_shader);
             if let Err(e) = &shader {
                 wwg_log::wwg_err!("{e}");
             }
