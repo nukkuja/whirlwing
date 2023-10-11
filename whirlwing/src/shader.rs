@@ -9,21 +9,33 @@ pub(crate) struct Shader {
 
 impl Shader {
     #[allow(dead_code)]
-    pub fn new(vertex_shader_path: &str, fragment_shader_path: &str) -> Result<Shader, WhirlwingError> {
+    pub fn new(
+        vertex_shader_path: &str,
+        fragment_shader_path: &str,
+    ) -> Result<Shader, WhirlwingError> {
         unsafe {
             let mut vertex_shader_vector;
             match std::fs::read(vertex_shader_path) {
                 Ok(vec) => {
                     vertex_shader_vector = vec;
                     vertex_shader_vector.push(b'\0');
-                },
+                }
                 Err(error) => {
                     let error_content = format!("Failed to read from path: {vertex_shader_path}");
-                    return Err(WhirlwingError::new_with_source(error_content, WhirlwingErrorKind::ShaderCompilationFailure, Box::new(error)))
-                },
+                    return Err(WhirlwingError::new_with_source(
+                        error_content,
+                        WhirlwingErrorKind::ShaderCompilationFailure,
+                        Box::new(error),
+                    ));
+                }
             }
             let vertex_shader = gl::CreateShader(gl::VERTEX_SHADER);
-            gl::ShaderSource(vertex_shader, 1, &(vertex_shader_vector.as_ptr() as *const i8), std::ptr::null());
+            gl::ShaderSource(
+                vertex_shader,
+                1,
+                &(vertex_shader_vector.as_ptr() as *const i8),
+                std::ptr::null(),
+            );
             gl::CompileShader(vertex_shader);
 
             #[cfg(debug_assertions)]
@@ -35,7 +47,10 @@ impl Shader {
                     gl::GetShaderInfoLog(vertex_shader, 512, std::ptr::null_mut(), &mut buffer[0]);
                     let string = from_utf8_unchecked(&*(buffer.as_ptr() as *const [u8; 512]));
                     let string = format!("Vertex Shader Compilation Error: {vertex_shader_path}\nOpenGL Error: {string}");
-                    return Err(WhirlwingError::new(string.to_string(), WhirlwingErrorKind::ShaderCompilationFailure))
+                    return Err(WhirlwingError::new(
+                        string.to_string(),
+                        WhirlwingErrorKind::ShaderCompilationFailure,
+                    ));
                 }
             }
 
@@ -44,14 +59,23 @@ impl Shader {
                 Ok(vec) => {
                     fragment_shader_vector = vec;
                     fragment_shader_vector.push(b'\0');
-                },
+                }
                 Err(error) => {
                     let error_content = format!("Failed to read from path: {fragment_shader_path}");
-                    return Err(WhirlwingError::new_with_source(error_content, WhirlwingErrorKind::ShaderCompilationFailure, Box::new(error)))
-                },
+                    return Err(WhirlwingError::new_with_source(
+                        error_content,
+                        WhirlwingErrorKind::ShaderCompilationFailure,
+                        Box::new(error),
+                    ));
+                }
             }
             let fragment_shader = gl::CreateShader(gl::FRAGMENT_SHADER);
-            gl::ShaderSource(fragment_shader, 1, &(fragment_shader_vector.as_ptr() as *const i8), std::ptr::null());
+            gl::ShaderSource(
+                fragment_shader,
+                1,
+                &(fragment_shader_vector.as_ptr() as *const i8),
+                std::ptr::null(),
+            );
             gl::CompileShader(fragment_shader);
 
             #[cfg(debug_assertions)]
@@ -60,10 +84,18 @@ impl Shader {
                 let mut buffer = [0i8; 512];
                 gl::GetShaderiv(fragment_shader, gl::COMPILE_STATUS, &mut success);
                 if success == 0 {
-                    gl::GetShaderInfoLog(fragment_shader, 512, std::ptr::null_mut(), &mut buffer[0]);
+                    gl::GetShaderInfoLog(
+                        fragment_shader,
+                        512,
+                        std::ptr::null_mut(),
+                        &mut buffer[0],
+                    );
                     let string = from_utf8_unchecked(&*(buffer.as_ptr() as *const [u8; 512]));
                     let string = format!("Fragment Shader Compilation Error: {fragment_shader_path}\nOpenGL Error: {string}");
-                    return Err(WhirlwingError::new(string.to_string(), WhirlwingErrorKind::ShaderCompilationFailure))
+                    return Err(WhirlwingError::new(
+                        string.to_string(),
+                        WhirlwingErrorKind::ShaderCompilationFailure,
+                    ));
                 }
             }
 
@@ -80,11 +112,16 @@ impl Shader {
                 if success == 0 {
                     gl::GetProgramInfoLog(program_id, 512, std::ptr::null_mut(), &mut buffer[0]);
                     let string = from_utf8_unchecked(&*(buffer.as_ptr() as *const [u8; 512]));
-                    let string = format!("Shader Program Linking Failed:\n
+                    let string = format!(
+                        "Shader Program Linking Failed:\n
                                           Vertex Shader: {vertex_shader_path}\n
                                           Fragment Shader: {fragment_shader_path}\n
-                                          OpenGL Error: {string}");
-                    return Err(WhirlwingError::new(string.to_string(), WhirlwingErrorKind::ShaderCompilationFailure))
+                                          OpenGL Error: {string}"
+                    );
+                    return Err(WhirlwingError::new(
+                        string.to_string(),
+                        WhirlwingErrorKind::ShaderCompilationFailure,
+                    ));
                 }
             }
 
@@ -96,11 +133,19 @@ impl Shader {
     }
 
     #[allow(dead_code)]
-    /// Slices should have b'\0' at the end. 
-    pub fn from_utf8_slices(vertex_shader_slice: &[u8], fragment_shader_slice: &[u8]) -> Result<Shader, WhirlwingError> {
+    /// Slices should have b'\0' at the end.
+    pub fn from_utf8_slices(
+        vertex_shader_slice: &[u8],
+        fragment_shader_slice: &[u8],
+    ) -> Result<Shader, WhirlwingError> {
         unsafe {
             let vertex_shader = gl::CreateShader(gl::VERTEX_SHADER);
-            gl::ShaderSource(vertex_shader, 1, &(vertex_shader_slice.as_ptr() as *const i8), std::ptr::null());
+            gl::ShaderSource(
+                vertex_shader,
+                1,
+                &(vertex_shader_slice.as_ptr() as *const i8),
+                std::ptr::null(),
+            );
             gl::CompileShader(vertex_shader);
 
             #[cfg(debug_assertions)]
@@ -112,12 +157,20 @@ impl Shader {
                     gl::GetShaderInfoLog(vertex_shader, 512, std::ptr::null_mut(), &mut buffer[0]);
                     let string = from_utf8_unchecked(&*(buffer.as_ptr() as *const [u8; 512]));
                     let string = format!("Vertex Shader Compilation Error: Shader was compiled from slice: {vertex_shader_slice:?}\nOpenGL Error: {string}");
-                    return Err(WhirlwingError::new(string.to_string(), WhirlwingErrorKind::ShaderCompilationFailure))
+                    return Err(WhirlwingError::new(
+                        string.to_string(),
+                        WhirlwingErrorKind::ShaderCompilationFailure,
+                    ));
                 }
             }
 
             let fragment_shader = gl::CreateShader(gl::FRAGMENT_SHADER);
-            gl::ShaderSource(fragment_shader, 1, &(fragment_shader_slice.as_ptr() as *const i8), std::ptr::null());
+            gl::ShaderSource(
+                fragment_shader,
+                1,
+                &(fragment_shader_slice.as_ptr() as *const i8),
+                std::ptr::null(),
+            );
             gl::CompileShader(fragment_shader);
 
             #[cfg(debug_assertions)]
@@ -126,10 +179,18 @@ impl Shader {
                 let mut buffer = [0i8; 512];
                 gl::GetShaderiv(fragment_shader, gl::COMPILE_STATUS, &mut success);
                 if success == 0 {
-                    gl::GetShaderInfoLog(fragment_shader, 512, std::ptr::null_mut(), &mut buffer[0]);
+                    gl::GetShaderInfoLog(
+                        fragment_shader,
+                        512,
+                        std::ptr::null_mut(),
+                        &mut buffer[0],
+                    );
                     let string = from_utf8_unchecked(&*(buffer.as_ptr() as *const [u8; 512]));
                     let string = format!("Fragment Shader Compilation Error: Shader was compiled from slice{fragment_shader_slice:?}\nOpenGL Error: {string}");
-                    return Err(WhirlwingError::new(string.to_string(), WhirlwingErrorKind::ShaderCompilationFailure))
+                    return Err(WhirlwingError::new(
+                        string.to_string(),
+                        WhirlwingErrorKind::ShaderCompilationFailure,
+                    ));
                 }
             }
 
@@ -146,11 +207,16 @@ impl Shader {
                 if success == 0 {
                     gl::GetProgramInfoLog(program_id, 512, std::ptr::null_mut(), &mut buffer[0]);
                     let string = from_utf8_unchecked(&*(buffer.as_ptr() as *const [u8; 512]));
-                    let string = format!("Shader Program Linking Failed:\n
+                    let string = format!(
+                        "Shader Program Linking Failed:\n
                                           Vertex Shader: {vertex_shader_slice:?}\n
                                           Fragment Shader: {fragment_shader_slice:?}\n
-                                          OpenGL Error: {string}");
-                    return Err(WhirlwingError::new(string.to_string(), WhirlwingErrorKind::ShaderCompilationFailure))
+                                          OpenGL Error: {string}"
+                    );
+                    return Err(WhirlwingError::new(
+                        string.to_string(),
+                        WhirlwingErrorKind::ShaderCompilationFailure,
+                    ));
                 }
             }
             gl::DeleteShader(vertex_shader);
@@ -161,13 +227,21 @@ impl Shader {
     }
 
     #[allow(dead_code)]
-    pub fn from_str(vertex_shader_str: &str, fragment_shader_str: &str) -> Result<Shader, WhirlwingError> {
+    pub fn from_str(
+        vertex_shader_str: &str,
+        fragment_shader_str: &str,
+    ) -> Result<Shader, WhirlwingError> {
         unsafe {
             let mut vertex_shader_str = vertex_shader_str.to_string();
             vertex_shader_str.push('\0');
 
             let vertex_shader = gl::CreateShader(gl::VERTEX_SHADER);
-            gl::ShaderSource(vertex_shader, 1, &(vertex_shader_str.as_ptr() as *const i8), std::ptr::null());
+            gl::ShaderSource(
+                vertex_shader,
+                1,
+                &(vertex_shader_str.as_ptr() as *const i8),
+                std::ptr::null(),
+            );
             gl::CompileShader(vertex_shader);
 
             #[cfg(debug_assertions)]
@@ -179,7 +253,10 @@ impl Shader {
                     gl::GetShaderInfoLog(vertex_shader, 512, std::ptr::null_mut(), &mut buffer[0]);
                     let string = from_utf8_unchecked(&*(buffer.as_ptr() as *const [u8; 512]));
                     let string = format!("Vertex Shader Compilation Error: Shader was compiled from string:\n{vertex_shader_str:?}\nOpenGL Error: {string}");
-                    return Err(WhirlwingError::new(string.to_string(), WhirlwingErrorKind::ShaderCompilationFailure))
+                    return Err(WhirlwingError::new(
+                        string.to_string(),
+                        WhirlwingErrorKind::ShaderCompilationFailure,
+                    ));
                 }
             }
 
@@ -187,7 +264,12 @@ impl Shader {
             fragment_shader_str.push('\0');
 
             let fragment_shader = gl::CreateShader(gl::FRAGMENT_SHADER);
-            gl::ShaderSource(fragment_shader, 1, &(fragment_shader_str.as_ptr() as *const i8), std::ptr::null());
+            gl::ShaderSource(
+                fragment_shader,
+                1,
+                &(fragment_shader_str.as_ptr() as *const i8),
+                std::ptr::null(),
+            );
             gl::CompileShader(fragment_shader);
 
             #[cfg(debug_assertions)]
@@ -196,10 +278,18 @@ impl Shader {
                 let mut buffer = [0i8; 512];
                 gl::GetShaderiv(fragment_shader, gl::COMPILE_STATUS, &mut success);
                 if success == 0 {
-                    gl::GetShaderInfoLog(fragment_shader, 512, std::ptr::null_mut(), &mut buffer[0]);
+                    gl::GetShaderInfoLog(
+                        fragment_shader,
+                        512,
+                        std::ptr::null_mut(),
+                        &mut buffer[0],
+                    );
                     let string = from_utf8_unchecked(&*(buffer.as_ptr() as *const [u8; 512]));
                     let string = format!("Fragment Shader Compilation Error: Shader was compiled from string:\n{fragment_shader_str:?}\nOpenGL Error: {string}");
-                    return Err(WhirlwingError::new(string.to_string(), WhirlwingErrorKind::ShaderCompilationFailure))
+                    return Err(WhirlwingError::new(
+                        string.to_string(),
+                        WhirlwingErrorKind::ShaderCompilationFailure,
+                    ));
                 }
             }
 
@@ -216,11 +306,16 @@ impl Shader {
                 if success == 0 {
                     gl::GetProgramInfoLog(program_id, 512, std::ptr::null_mut(), &mut buffer[0]);
                     let string = from_utf8_unchecked(&*(buffer.as_ptr() as *const [u8; 512]));
-                    let string = format!("Shader Program Linking Failed:\n
+                    let string = format!(
+                        "Shader Program Linking Failed:\n
                                           Vertex Shader:\n{vertex_shader_str}\n
                                           Fragment Shader:\n{fragment_shader_str}\n
-                                          OpenGL Error: {string}");
-                    return Err(WhirlwingError::new(string.to_string(), WhirlwingErrorKind::ShaderCompilationFailure))
+                                          OpenGL Error: {string}"
+                    );
+                    return Err(WhirlwingError::new(
+                        string.to_string(),
+                        WhirlwingErrorKind::ShaderCompilationFailure,
+                    ));
                 }
             }
 
@@ -236,12 +331,16 @@ impl Shader {
     }
 
     pub fn bind(&self) {
-        unsafe { gl::UseProgram(self.program_id); }       
+        unsafe {
+            gl::UseProgram(self.program_id);
+        }
     }
 }
 
 impl Drop for Shader {
     fn drop(&mut self) {
-        unsafe { gl::DeleteProgram(self.program_id); }
+        unsafe {
+            gl::DeleteProgram(self.program_id);
+        }
     }
 }

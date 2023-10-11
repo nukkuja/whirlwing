@@ -3,15 +3,15 @@ use crate::{renderer::Renderer, time::Time};
 use std::num::NonZeroU32;
 
 use glutin::{
-    prelude::{NotCurrentGlContextSurfaceAccessor, PossiblyCurrentGlContext},
     config::{ConfigTemplateBuilder, GlConfig},
-    display::{GlDisplay, GetGlDisplay},
     context::{ContextAttributesBuilder, GlProfile},
+    display::{GetGlDisplay, GlDisplay},
+    prelude::{NotCurrentGlContextSurfaceAccessor, PossiblyCurrentGlContext},
     surface::GlSurface,
 };
 use glutin_winit::{DisplayBuilder, GlWindow};
 use raw_window_handle::HasRawWindowHandle;
-use winit::event::{Event, WindowEvent, VirtualKeyCode};
+use winit::event::{Event, VirtualKeyCode, WindowEvent};
 
 pub fn run() {
     let event_loop = winit::event_loop::EventLoop::new();
@@ -20,7 +20,7 @@ pub fn run() {
         .with_inner_size(winit::dpi::PhysicalSize::new(800, 600))
         .with_transparent(true);
 
-    // I stole next chunk of code from glutin example
+    // I stole next expression from glutin example
     // And I don't know what's going on there
     #[cfg(cgl_backend)]
     let template = ConfigTemplateBuilder::new()
@@ -59,11 +59,14 @@ pub fn run() {
         .with_context_api(glutin::context::ContextApi::Gles(Some(
             glutin::context::Version::new(3, 3),
         )));
+
+    #[cfg(not(wgl_backend))]
     #[cfg(debug_assertions)]
     let context_attributes = context_attributes
         .with_debug(true)
         .with_robustness(glutin::context::Robustness::RobustLoseContextOnReset);
 
+    #[cfg(not(wgl_backend))]
     let context_attributes = context_attributes.build(raw_window_handle);
 
     let mut not_current_gl_context = Some(unsafe {
@@ -103,7 +106,6 @@ pub fn run() {
 
                 if renderer.is_none() {
                     renderer = Some(Renderer::new(&gl_display));
-
                 }
 
                 if let Err(res) = gl_surface.set_swap_interval(
@@ -149,10 +151,6 @@ pub fn run() {
             },
             Event::MainEventsCleared => {
                 if let Some((gl_context, gl_surface, window)) = &state {
-                    unsafe {
-                        gl::ClearColor(0.2, 0.3, 0.3, 1.0);
-                        gl::Clear(gl::COLOR_BUFFER_BIT);
-                    }
                     if let Some(rend) = &renderer {
                         rend.redraw(&time);
                     }

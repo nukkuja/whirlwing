@@ -65,10 +65,15 @@ impl Renderer {
     }
     pub(crate) fn redraw(&self, time: &Time) {
         unsafe {
-            let green_color = (time.now().as_secs_f32().sin() / 2.0) + 0.5;
-            let vertex_color_location = gl::GetUniformLocation(self.shader.id(), b"ourColor\0".as_ptr() as *const i8);
+            gl::ClearColor(0.2, 0.3, 0.3, 1.0);
+            gl::Clear(gl::COLOR_BUFFER_BIT);
+
+            let green_color = (time.now().as_secs_f32()).sin() / 2.0 + 0.5;
+            let vertex_color_location =
+                gl::GetUniformLocation(self.shader.id(), b"ourColor\0".as_ptr() as *const i8);
+            let red_color = 1.0 - green_color;
             self.shader.bind();
-            gl::Uniform4f(vertex_color_location, 0.0, green_color, 0.0, 1.0);
+            gl::Uniform4f(vertex_color_location, red_color, green_color, 0.0, 1.0);
 
             gl::BindVertexArray(self.vertex_array);
             gl::DrawArrays(gl::TRIANGLES, 0, 3);

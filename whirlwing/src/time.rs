@@ -1,4 +1,4 @@
-use std::time::{Instant, Duration};
+use std::time::{Duration, Instant};
 
 #[derive(Debug)]
 pub(crate) struct Time {
@@ -13,7 +13,11 @@ impl Time {
         let start = Instant::now();
         let now = start.elapsed();
         let delta_time = start.elapsed();
-        Time { start, now, delta_time }
+        Time {
+            start,
+            now,
+            delta_time,
+        }
     }
 
     pub(crate) fn reset(&mut self) {

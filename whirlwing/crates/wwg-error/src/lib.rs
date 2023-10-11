@@ -9,20 +9,42 @@ pub struct WhirlwingError {
 
 impl WhirlwingError {
     pub fn new(content: String, kind: WhirlwingErrorKind) -> Self {
-        WhirlwingError { content, kind, source: None, }
+        WhirlwingError {
+            content,
+            kind,
+            source: None,
+        }
     }
 
-    pub fn new_with_source(content: String, kind: WhirlwingErrorKind, source: Box<dyn Error>) -> Self {
-        WhirlwingError { content, kind, source: Some(source), }
+    pub fn new_with_source(
+        content: String,
+        kind: WhirlwingErrorKind,
+        source: Box<dyn Error>,
+    ) -> Self {
+        WhirlwingError {
+            content,
+            kind,
+            source: Some(source),
+        }
     }
 }
 
 impl std::fmt::Display for WhirlwingError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if self.source.is_some() {
-            write!(f, "Whirlwing Error: {}\nError Content: {}\nError Source: {}", self.kind, self.content, self.source.as_ref().unwrap())
+            write!(
+                f,
+                "Whirlwing Error: {}\nError Content: {}\nError Source: {}",
+                self.kind,
+                self.content,
+                self.source.as_ref().unwrap()
+            )
         } else {
-            write!(f, "Whirlwing Error: {}\nError Content: {}", self.kind, self.content)
+            write!(
+                f,
+                "Whirlwing Error: {}\nError Content: {}",
+                self.kind, self.content
+            )
         }
     }
 }
