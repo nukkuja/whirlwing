@@ -1,84 +1,17 @@
-use glutin::config::{ConfigTemplateBuilder, GlConfig};
-use glutin::context::{ContextAttributesBuilder, GlProfile};
-use glutin::display::Display;
-use glutin::display::GetGlDisplay;
-use glutin::prelude::{GlDisplay, NotCurrentGlContextSurfaceAccessor, PossiblyCurrentGlContext};
-use glutin::surface::GlSurface;
+use crate::renderer::Renderer;
+
+use std::num::NonZeroU32;
+
+use glutin::{
+    prelude::{NotCurrentGlContextSurfaceAccessor, PossiblyCurrentGlContext},
+    config::{ConfigTemplateBuilder, GlConfig},
+    display::{GlDisplay, GetGlDisplay},
+    context::{ContextAttributesBuilder, GlProfile},
+    surface::GlSurface,
+};
 use glutin_winit::{DisplayBuilder, GlWindow};
 use raw_window_handle::HasRawWindowHandle;
-use std::ffi::CString;
-use std::num::NonZeroU32;
 use winit::event::{Event, WindowEvent, VirtualKeyCode};
-use crate::shader::Shader;
-
-
-struct Renderer {
-    vertex_array: u32,
-    shader: Shader,
-}
-
-impl Renderer {
-    fn new(display: &Display) -> Self {
-        gl::load_with(|symbol| {
-            let symbol = CString::new(symbol).unwrap();
-            display.get_proc_address(&symbol)
-        });
-
-        unsafe {
-            gl::Viewport(0, 0, 800, 600);
-        }
-
-        unsafe {
-            let mut vbo = 0;
-            gl::GenBuffers(1, &mut vbo);
-
-            let shader = Shader::from_utf8_slices(VERTEX_SHADER, FRAGMENT_SHADER).unwrap();
-
-            let mut vao = 0;
-            gl::GenVertexArrays(1, &mut vao);
-            gl::BindVertexArray(vao);
-
-            gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
-            gl::BufferData(
-                gl::ARRAY_BUFFER,
-                std::mem::size_of_val(&VERTICES) as isize,
-                VERTICES.as_ptr() as *const std::ffi::c_void,
-                gl::STATIC_DRAW,
-            );
-
-            gl::VertexAttribPointer(
-                0,
-                3,
-                gl::FLOAT,
-                gl::FALSE,
-                3 * std::mem::size_of::<f32>() as i32,
-                std::ptr::null(),
-            );
-            gl::EnableVertexAttribArray(0);
-
-            Renderer {
-                vertex_array: vao,
-                shader,
-            }
-        }
-    }
-    fn resize(&self, width: i32, height: i32) {
-        unsafe {
-            gl::Viewport(0, 0, width, height);
-        }
-    }
-    fn redraw(&self) {
-        unsafe {
-            gl::BindVertexArray(self.vertex_array);
-            self.shader.bind();
-            gl::DrawArrays(gl::TRIANGLES, 0, 3);
-        }
-    }
-}
-
-impl Drop for Renderer {
-    fn drop(&mut self) {}
-}
 
 pub fn run() {
     let event_loop = winit::event_loop::EventLoop::new();
@@ -168,7 +101,7 @@ pub fn run() {
 
                 if let None = renderer {
                     renderer = Some(Renderer::new(&gl_display));
-                    gl_surface.swap_buffers(&gl_context).unwrap();
+
                 }
 
                 if let Err(res) = gl_surface.set_swap_interval(
@@ -228,28 +161,3 @@ pub fn run() {
         }
     });
 }
-
-#[rustfmt::skip]
-const VERTICES: [f32; 9] = [
-    -0.5f32, -0.5f32, 0.0f32,
-     0.5f32, -0.5f32, 0.0f32,
-     0.0f32,  0.5f32, 0.0f32
-];
-
-const VERTEX_SHADER: &[u8] = b"
-#version 330 core
-layout (location = 0) in vec3 aPos;
-
-void main()
-{
-    gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
-}\0";
-
-const FRAGMENT_SHADER: &[u8] = b"
-#version 330 core
-out vec4 FragColor;
-void main()
-{
-    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
-}
-\0";

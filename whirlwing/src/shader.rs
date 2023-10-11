@@ -8,9 +8,12 @@ pub(crate) struct Shader {
 impl Shader {
     pub fn new(vertex_shader_path: &str, fragment_shader_path: &str) -> Result<Shader, WhirlwingError> {
         unsafe {
-            let vertex_shader_vector;
+            let mut vertex_shader_vector;
             match std::fs::read(vertex_shader_path) {
-                Ok(vec) => { vertex_shader_vector = vec },
+                Ok(vec) => {
+                    vertex_shader_vector = vec;
+                    vertex_shader_vector.push(b'\0');
+                },
                 Err(error) => {
                     let error_content = format!("Failed to read from path: {vertex_shader_path}");
                     return Err(WhirlwingError::new_with_source(error_content, WhirlwingErrorKind::ShaderCompilationFailure, Box::new(error)))
@@ -33,9 +36,12 @@ impl Shader {
                 }
             }
 
-            let fragment_shader_vector;
+            let mut fragment_shader_vector;
             match std::fs::read(fragment_shader_path) {
-                Ok(vec) => { fragment_shader_vector = vec },
+                Ok(vec) => {
+                    fragment_shader_vector = vec;
+                    fragment_shader_vector.push(b'\0');
+                },
                 Err(error) => {
                     let error_content = format!("Failed to read from path: {fragment_shader_path}");
                     return Err(WhirlwingError::new_with_source(error_content, WhirlwingErrorKind::ShaderCompilationFailure, Box::new(error)))
@@ -86,6 +92,7 @@ impl Shader {
         }
     }
 
+    #[allow(dead_code)]
     pub fn from_utf8_slices(vertex_shader_slice: &[u8], fragment_shader_slice: &[u8]) -> Result<Shader, WhirlwingError> {
         unsafe {
             let vertex_shader = gl::CreateShader(gl::VERTEX_SHADER);
