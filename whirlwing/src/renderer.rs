@@ -112,6 +112,7 @@ impl Renderer {
             // drop(pixels);
 
             gl::VertexAttribPointer(2, 2, gl::FLOAT, gl::FALSE, 8 * size_of::<f32>() as i32, (6 * size_of::<f32>()) as *const c_void);
+            gl::EnableVertexAttribArray(2);
 
             // Element buffer
 
@@ -120,9 +121,6 @@ impl Renderer {
 
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ebo);
             gl::BufferData(gl::ELEMENT_ARRAY_BUFFER, size_of_val(&INDICES) as isize, INDICES.as_ptr() as *const c_void, gl::STATIC_DRAW);
-
-            let error = gl::GetError();
-            wwg_log::wwg_err!("OpenGL Error: {error}");
 
             Renderer {
                 vertex_array: vao,
