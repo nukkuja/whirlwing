@@ -1,9 +1,14 @@
+use std::ffi::*;
+use std::mem::{size_of, size_of_val};
+use std::ptr::null;
+
 use crate::{shader::Shader, time::Time};
 use glutin::display::{Display, GlDisplay};
-use std::ffi::CString;
 
 pub(crate) struct Renderer {
     vertex_array: u32,
+    element_buffer: u32,
+    texture: u32,
     shader: Shader,
 }
 
@@ -27,6 +32,7 @@ impl Renderer {
             let shader = Shader::from_str(vertex_shader, fragment_shader);
             if let Err(e) = &shader {
                 wwg_log::wwg_err!("{e}");
+                panic!();
             }
             let shader = shader.unwrap();
 
@@ -37,8 +43,8 @@ impl Renderer {
             gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
             gl::BufferData(
                 gl::ARRAY_BUFFER,
-                std::mem::size_of_val(&VERTICES) as isize,
-                VERTICES.as_ptr() as *const std::ffi::c_void,
+                size_of_val(&VERTICES) as isize,
+                VERTICES.as_ptr() as *const c_void,
                 gl::STATIC_DRAW,
             );
 
@@ -47,36 +53,103 @@ impl Renderer {
                 3,
                 gl::FLOAT,
                 gl::FALSE,
-                3 * std::mem::size_of::<f32>() as i32,
-                std::ptr::null(),
+                8 * size_of::<f32>() as i32,
+                0usize as *const c_void,
             );
             gl::EnableVertexAttribArray(0);
 
+            gl::VertexAttribPointer(
+                1,
+                3,
+                gl::FLOAT,
+                gl::FALSE,
+                8 * size_of::<f32>() as i32,
+                (3 * size_of::<f32>()) as *const c_void,
+            );
+            gl::EnableVertexAttribArray(1);
+
+            // TEXTURES CODE STARTS HERE
+            let mut texture = 0;
+            gl::GenTextures(1, &mut texture);
+            gl::BindTexture(gl::TEXTURE_2D, texture);
+
+            gl::TexParameteri(
+                gl::TEXTURE_2D,
+                gl::TEXTURE_WRAP_S,
+                gl::REPEAT as i32,
+            );
+            gl::TexParameteri(
+                gl::TEXTURE_2D,
+                gl::TEXTURE_WRAP_T,
+                gl::REPEAT as i32,
+            );
+
+            gl::TexParameteri(
+                gl::TEXTURE_2D,
+                gl::TEXTURE_MIN_FILTER,
+                gl::LINEAR_MIPMAP_LINEAR as i32,
+            );
+            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
+
+            let texture_file = std::fs::File::open("res/textures/wall.jpg").unwrap();
+            let mut decoder = jpeg_decoder::Decoder::new(std::io::BufReader::new(texture_file));
+            let pixels = decoder.decode().unwrap();
+            let metadata = decoder.info().unwrap();
+            
+            gl::TexImage2D(
+                gl::TEXTURE_2D,
+                0,
+                gl::RGB as i32,
+                metadata.width as i32,
+                metadata.height as i32,
+                0,
+                gl::RGB,
+                gl::UNSIGNED_BYTE,
+                pixels.as_ptr() as *const c_void,
+            );
+            gl::GenerateMipmap(gl::TEXTURE_2D);
+
+            // drop(pixels);
+
+            gl::VertexAttribPointer(2, 2, gl::FLOAT, gl::FALSE, 8 * size_of::<f32>() as i32, (6 * size_of::<f32>()) as *const c_void);
+
+            // Element buffer
+
+            let mut ebo = 0;
+            gl::GenBuffers(1, &mut ebo);
+
+            gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ebo);
+            gl::BufferData(gl::ELEMENT_ARRAY_BUFFER, size_of_val(&INDICES) as isize, INDICES.as_ptr() as *const c_void, gl::STATIC_DRAW);
+
+            let error = gl::GetError();
+            wwg_log::wwg_err!("OpenGL Error: {error}");
+
             Renderer {
                 vertex_array: vao,
+                element_buffer: ebo,
+                texture,
                 shader,
             }
         }
     }
+
     pub(crate) fn resize(&self, width: i32, height: i32) {
         unsafe {
             gl::Viewport(0, 0, width, height);
         }
     }
-    pub(crate) fn redraw(&self, time: &Time) {
+
+    pub(crate) fn redraw(&self, _time: &Time) {
         unsafe {
             gl::ClearColor(0.2, 0.3, 0.3, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT);
 
-            let green_color = (time.now().as_secs_f32()).sin() / 2.0 + 0.5;
-            let vertex_color_location =
-                gl::GetUniformLocation(self.shader.id(), b"ourColor\0".as_ptr() as *const i8);
-            let red_color = 1.0 - green_color;
             self.shader.bind();
-            gl::Uniform4f(vertex_color_location, red_color, green_color, 0.0, 1.0);
 
             gl::BindVertexArray(self.vertex_array);
-            gl::DrawArrays(gl::TRIANGLES, 0, 3);
+            gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, self.element_buffer);
+            gl::BindTexture(gl::TEXTURE_2D, self.texture);
+            gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, null());
         }
     }
 }
@@ -86,8 +159,14 @@ impl Drop for Renderer {
 }
 
 #[rustfmt::skip]
-const VERTICES: [f32; 9] = [
-    -0.5f32, -0.5f32, 0.0f32,
-     0.5f32, -0.5f32, 0.0f32,
-     0.0f32,  0.5f32, 0.0f32,
+const VERTICES: [f32; 32] = [
+    -0.5, -0.5, 0.0,    1.0, 0.0, 0.0,  0.0, 0.0,
+    -0.5,  0.5, 0.0,    0.0, 1.0, 0.0,  0.0, 1.0,
+     0.5, -0.5, 0.0,    0.0, 0.0, 1.0,  1.0, 0.0,
+     0.5,  0.5, 0.0,    1.0, 1.0, 0.0,  1.0, 1.0,
+];
+
+const INDICES: [u32; 6] = [
+    0, 1, 2,
+    1, 2, 3,
 ];
