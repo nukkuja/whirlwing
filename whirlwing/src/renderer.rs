@@ -8,7 +8,8 @@ use glutin::display::{Display, GlDisplay};
 pub(crate) struct Renderer {
     vertex_array: u32,
     element_buffer: u32,
-    texture: u32,
+    texture1: u32,
+    texture2: u32,
     shader: Shader,
 }
 
@@ -68,10 +69,66 @@ impl Renderer {
             );
             gl::EnableVertexAttribArray(1);
 
+            gl::VertexAttribPointer(2, 2, gl::FLOAT, gl::FALSE, 8 * size_of::<f32>() as i32, (6 * size_of::<f32>()) as *const c_void);
+            gl::EnableVertexAttribArray(2);
+
             // TEXTURES CODE STARTS HERE
-            let mut texture = 0;
-            gl::GenTextures(1, &mut texture);
-            gl::BindTexture(gl::TEXTURE_2D, texture);
+            let path = std::env::current_dir().unwrap();
+
+            let mut container_texture_path = path.clone();
+            container_texture_path.push("res/textures/container.jpg");
+            let img = image::open(container_texture_path).unwrap();
+            let width = img.width();
+            let height = img.height();
+            let pixels = img.into_rgb8().into_raw();
+
+            let mut texture1 = 0;
+            gl::GenTextures(1, &mut texture1);
+            gl::BindTexture(gl::TEXTURE_2D, texture1);
+            let border_color: [f32; 4] = [0.3, 0.2, 0.5, 1.0];
+            gl::TexParameterfv(gl::TEXTURE_2D, gl::TEXTURE_BORDER_COLOR, border_color.as_ptr());
+
+            gl::TexParameteri(
+                gl::TEXTURE_2D,
+                gl::TEXTURE_WRAP_S,
+                gl::CLAMP_TO_BORDER as i32,
+            );
+            gl::TexParameteri(
+                gl::TEXTURE_2D,
+                gl::TEXTURE_WRAP_T,
+                gl::CLAMP_TO_BORDER as i32,
+            );
+
+            gl::TexParameteri(
+                gl::TEXTURE_2D,
+                gl::TEXTURE_MIN_FILTER,
+                gl::LINEAR_MIPMAP_LINEAR as i32,
+            );
+            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
+            
+            gl::TexImage2D(
+                gl::TEXTURE_2D,
+                0,
+                gl::RGB as i32,
+                width as i32,
+                height as i32,
+                0,
+                gl::RGB,
+                gl::UNSIGNED_BYTE,
+                pixels.as_ptr() as *const c_void,
+            );
+            gl::GenerateMipmap(gl::TEXTURE_2D);
+
+            let mut awesomeface_path = path.clone();
+            awesomeface_path.push("res/textures/awesomeface.png");
+            let img = image::open(awesomeface_path).unwrap().flipv();
+            let width = img.width();
+            let height = img.height();
+            let pixels = img.into_rgba8().into_raw();
+
+            let mut texture2 = 0;
+            gl::GenTextures(1, &mut texture2);
+            gl::BindTexture(gl::TEXTURE_2D, texture2);
 
             gl::TexParameteri(
                 gl::TEXTURE_2D,
@@ -91,33 +148,15 @@ impl Renderer {
             );
             gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
 
-            let mut path = std::env::current_dir().unwrap();
-            path.push("res/textures/container.jpg");
-            let img = image::open(path).unwrap();
-            let width = img.width();
-            let height = img.height();
-            let pixels = img.into_bytes();
-            
-            gl::TexImage2D(
-                gl::TEXTURE_2D,
-                0,
-                gl::RGB as i32,
-                width as i32,
-                height as i32,
-                0,
-                gl::RGB,
-                gl::UNSIGNED_BYTE,
-                pixels.as_ptr() as *const c_void,
-            );
+            gl::TexImage2D(gl::TEXTURE_2D, 0, gl::RGB as i32, width as i32, height as i32, 0, gl::RGBA, gl::UNSIGNED_BYTE, pixels.as_ptr() as *const c_void);
+
             gl::GenerateMipmap(gl::TEXTURE_2D);
 
-            // drop(pixels);
-
-            gl::VertexAttribPointer(2, 2, gl::FLOAT, gl::FALSE, 8 * size_of::<f32>() as i32, (6 * size_of::<f32>()) as *const c_void);
-            gl::EnableVertexAttribArray(2);
+            shader.bind();
+            shader.set_int("texture1", 0);
+            shader.set_int("texture2", 1);
 
             // Element buffer
-
             let mut ebo = 0;
             gl::GenBuffers(1, &mut ebo);
 
@@ -127,7 +166,8 @@ impl Renderer {
             Renderer {
                 vertex_array: vao,
                 element_buffer: ebo,
-                texture,
+                texture1,
+                texture2,
                 shader,
             }
         }
@@ -139,16 +179,22 @@ impl Renderer {
         }
     }
 
-    pub(crate) fn redraw(&self, _time: &Time) {
+    pub(crate) fn redraw(&self, _time: &Time, visibility: f32) {
         unsafe {
             gl::ClearColor(0.2, 0.3, 0.3, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT);
 
+            gl::ActiveTexture(gl::TEXTURE0);
+            gl::BindTexture(gl::TEXTURE_2D, self.texture1);
+            gl::ActiveTexture(gl::TEXTURE1);
+            gl::BindTexture(gl::TEXTURE_2D, self.texture2);
+
             self.shader.bind();
+            self.shader.set_float("visibility", visibility);
 
             gl::BindVertexArray(self.vertex_array);
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, self.element_buffer);
-            gl::BindTexture(gl::TEXTURE_2D, self.texture);
+
             gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, null());
         }
     }
