@@ -23,7 +23,7 @@ raw-window-handle = "0.5.2"
 glutin = "0.30.10"
 glutin-winit = "0.3.0"
 gl = "0.14.0"
-jpeg-decoder = "0.3.0"
+image = "0.24.7"
 
 [features]
 log = ["wwg-log"]

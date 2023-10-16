@@ -91,17 +91,19 @@ impl Renderer {
             );
             gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
 
-            let texture_file = std::fs::File::open("res/textures/wall.jpg").unwrap();
-            let mut decoder = jpeg_decoder::Decoder::new(std::io::BufReader::new(texture_file));
-            let pixels = decoder.decode().unwrap();
-            let metadata = decoder.info().unwrap();
+            let mut path = std::env::current_dir().unwrap();
+            path.push("res/textures/container.jpg");
+            let img = image::open(path).unwrap();
+            let width = img.width();
+            let height = img.height();
+            let pixels = img.into_bytes();
             
             gl::TexImage2D(
                 gl::TEXTURE_2D,
                 0,
                 gl::RGB as i32,
-                metadata.width as i32,
-                metadata.height as i32,
+                width as i32,
+                height as i32,
                 0,
                 gl::RGB,
                 gl::UNSIGNED_BYTE,
