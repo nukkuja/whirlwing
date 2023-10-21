@@ -1,132 +1,10 @@
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, PartialEq, Clone, Copy)]
 pub struct Vector3 {
     pub x: f32,
     pub y: f32,
     pub z: f32,
 }
 
-impl std::ops::Add for Vector3 {
-    type Output = Vector3;
-    fn add(self, rhs: Self) -> Self::Output {
-        Vector3 {
-            x: self.x + rhs.x,
-            y: self.y + rhs.y,
-            z: self.z + rhs.z,
-        }
-    }
-}
-impl std::ops::Add for &Vector3 {
-    type Output = Vector3;
-    fn add(self, rhs: Self) -> Self::Output {
-        Vector3 {
-            x: self.x + rhs.x,
-            y: self.y + rhs.y,
-            z: self.z + rhs.z,
-        }
-    }
-}
-impl std::ops::AddAssign for Vector3 {
-    fn add_assign(&mut self, rhs: Self) {
-        self.x += rhs.x;
-        self.y += rhs.y;
-        self.z += rhs.z;
-    }
-}
-impl std::ops::AddAssign<&Vector3> for Vector3 {
-    fn add_assign(&mut self, rhs: &Self) {
-        self.x += rhs.x;
-        self.y += rhs.y;
-        self.z += rhs.z;
-    }
-}
-impl std::ops::Sub for Vector3 {
-    type Output = Vector3;
-    fn sub(self, rhs: Self) -> Self::Output {
-        Vector3 {
-            x: self.x - rhs.x,
-            y: self.y - rhs.y,
-            z: self.z - rhs.z,
-        }
-    }
-}
-impl std::ops::Sub for &Vector3 {
-    type Output = Vector3;
-    fn sub(self, rhs: Self) -> Self::Output {
-        Vector3 {
-            x: self.x - rhs.x,
-            y: self.y - rhs.y,
-            z: self.z - rhs.z,
-        }
-    }
-}
-impl std::ops::SubAssign for Vector3 {
-    fn sub_assign(&mut self, rhs: Self) {
-        self.x -= rhs.x;
-        self.y -= rhs.y;
-        self.z -= rhs.z;
-    }
-}
-impl std::ops::SubAssign<&Vector3> for Vector3 {
-    fn sub_assign(&mut self, rhs: &Self) {
-        self.x -= rhs.x;
-        self.y -= rhs.y;
-        self.z -= rhs.z;
-    }
-}
-impl std::ops::Mul<f32> for Vector3 {
-    type Output = Vector3;
-    fn mul(self, rhs: f32) -> Self::Output {
-        Vector3 {
-            x: self.x * rhs,
-            y: self.y * rhs,
-            z: self.z * rhs,
-        }
-    }
-}
-impl std::ops::Mul<f32> for &Vector3 {
-    type Output = Vector3;
-    fn mul(self, rhs: f32) -> Self::Output {
-        Vector3 {
-            x: self.x * rhs,
-            y: self.y * rhs,
-            z: self.z * rhs,
-        }
-    }
-}
-impl std::ops::MulAssign<f32> for Vector3 {
-    fn mul_assign(&mut self, rhs: f32) {
-        self.x *= rhs;
-        self.y *= rhs;
-        self.z *= rhs;
-    }
-}
-impl std::ops::Div<f32> for Vector3 {
-    type Output = Vector3;
-    fn div(self, rhs: f32) -> Self::Output {
-        Vector3 {
-            x: self.x / rhs,
-            y: self.y / rhs,
-            z: self.z / rhs,
-        }
-    }
-}
-impl std::ops::Div<f32> for &Vector3 {
-    type Output = Vector3;
-    fn div(self, rhs: f32) -> Self::Output {
-        Vector3 {
-            x: self.x / rhs,
-            y: self.y / rhs,
-            z: self.z / rhs,
-        }
-    }
-}
-impl std::ops::DivAssign<f32> for Vector3 {
-    fn div_assign(&mut self, rhs: f32) {
-        self.x /= rhs;
-        self.y /= rhs;
-        self.z /= rhs;
-    }
-}
 impl Vector3 {
     pub fn new(x: f32, y: f32, z: f32) -> Self {
         Vector3 { x, y, z }
@@ -163,7 +41,7 @@ impl Vector3 {
     }
 }
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, Copy)]
 pub struct Vector4 {
     pub x: f32,
     pub y: f32,
@@ -171,149 +49,13 @@ pub struct Vector4 {
     pub w: f32,
 }
 
-impl std::ops::Add for Vector4 {
-    type Output = Vector4;
-    fn add(self, rhs: Self) -> Self::Output {
-        Vector4 {
-            x: self.x + rhs.x,
-            y: self.y + rhs.y,
-            z: self.z + rhs.z,
-            w: self.w + rhs.w,
-        }
-    }
-}
-impl std::ops::Add for &Vector4 {
-    type Output = Vector4;
-    fn add(self, rhs: Self) -> Self::Output {
-        Vector4 {
-            x: self.x + rhs.x,
-            y: self.y + rhs.y,
-            z: self.z + rhs.z,
-            w: self.w + rhs.w,
-        }
-    }
-}
-impl std::ops::AddAssign for Vector4 {
-    fn add_assign(&mut self, rhs: Self) {
-        self.x += rhs.x;
-        self.y += rhs.y;
-        self.z += rhs.z;
-        self.w += rhs.w;
-    }
-}
-impl std::ops::AddAssign<&Vector4> for Vector4 {
-    fn add_assign(&mut self, rhs: &Self) {
-        self.x += rhs.x;
-        self.y += rhs.y;
-        self.z += rhs.z;
-        self.w += rhs.w;
-    }
-}
-impl std::ops::Sub for Vector4 {
-    type Output = Vector4;
-    fn sub(self, rhs: Self) -> Self::Output {
-        Vector4 {
-            x: self.x - rhs.x,
-            y: self.y - rhs.y,
-            z: self.z - rhs.z,
-            w: self.w - rhs.w,
-        }
-    }
-}
-impl std::ops::Sub for &Vector4 {
-    type Output = Vector4;
-    fn sub(self, rhs: Self) -> Self::Output {
-        Vector4 {
-            x: self.x - rhs.x,
-            y: self.y - rhs.y,
-            z: self.z - rhs.z,
-            w: self.w - rhs.w,
-        }
-    }
-}
-impl std::ops::SubAssign for Vector4 {
-    fn sub_assign(&mut self, rhs: Self) {
-        self.x -= rhs.x;
-        self.y -= rhs.y;
-        self.z -= rhs.z;
-        self.w -= rhs.w;
-    }
-}
-impl std::ops::SubAssign<&Vector4> for Vector4 {
-    fn sub_assign(&mut self, rhs: &Self) {
-        self.x -= rhs.x;
-        self.y -= rhs.y;
-        self.z -= rhs.z;
-        self.w -= rhs.w;
-    }
-}
-impl std::ops::Mul<f32> for Vector4 {
-    type Output = Vector4;
-    fn mul(self, rhs: f32) -> Self::Output {
-        Vector4 {
-            x: self.x * rhs,
-            y: self.y * rhs,
-            z: self.z * rhs,
-            w: self.w * rhs,
-        }
-    }
-}
-impl std::ops::Mul<f32> for &Vector4 {
-    type Output = Vector4;
-    fn mul(self, rhs: f32) -> Self::Output {
-        Vector4 {
-            x: self.x * rhs,
-            y: self.y * rhs,
-            z: self.z * rhs,
-            w: self.w * rhs,
-        }
-    }
-}
-impl std::ops::MulAssign<f32> for Vector4 {
-    fn mul_assign(&mut self, rhs: f32) {
-        self.x *= rhs;
-        self.y *= rhs;
-        self.z *= rhs;
-        self.w *= rhs;
-    }
-}
-impl std::ops::Div<f32> for Vector4 {
-    type Output = Vector4;
-    fn div(self, rhs: f32) -> Self::Output {
-        Vector4 {
-            x: self.x / rhs,
-            y: self.y / rhs,
-            z: self.z / rhs,
-            w: self.w / rhs,
-        }
-    }
-}
-impl std::ops::Div<f32> for &Vector4 {
-    type Output = Vector4;
-    fn div(self, rhs: f32) -> Self::Output {
-        Vector4 {
-            x: self.x / rhs,
-            y: self.y / rhs,
-            z: self.z / rhs,
-            w: self.w / rhs,
-        }
-    }
-}
-impl std::ops::DivAssign<f32> for Vector4 {
-    fn div_assign(&mut self, rhs: f32) {
-        self.x *= rhs;
-        self.y *= rhs;
-        self.z *= rhs;
-        self.w *= rhs;
-    }
-}
 impl Vector4 {
     pub fn new(x: f32, y: f32, z: f32, w: f32) -> Self {
         Vector4 { x, y, z, w }
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone, Copy)]
 pub struct Matrix4 {
     pub x1: f32,
     pub x2: f32,
