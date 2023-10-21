@@ -69,7 +69,14 @@ impl Renderer {
             );
             gl::EnableVertexAttribArray(1);
 
-            gl::VertexAttribPointer(2, 2, gl::FLOAT, gl::FALSE, 8 * size_of::<f32>() as i32, (6 * size_of::<f32>()) as *const c_void);
+            gl::VertexAttribPointer(
+                2,
+                2,
+                gl::FLOAT,
+                gl::FALSE,
+                8 * size_of::<f32>() as i32,
+                (6 * size_of::<f32>()) as *const c_void,
+            );
             gl::EnableVertexAttribArray(2);
 
             // TEXTURES CODE STARTS HERE
@@ -86,7 +93,11 @@ impl Renderer {
             gl::GenTextures(1, &mut texture1);
             gl::BindTexture(gl::TEXTURE_2D, texture1);
             let border_color: [f32; 4] = [0.3, 0.2, 0.5, 1.0];
-            gl::TexParameterfv(gl::TEXTURE_2D, gl::TEXTURE_BORDER_COLOR, border_color.as_ptr());
+            gl::TexParameterfv(
+                gl::TEXTURE_2D,
+                gl::TEXTURE_BORDER_COLOR,
+                border_color.as_ptr(),
+            );
 
             gl::TexParameteri(
                 gl::TEXTURE_2D,
@@ -105,7 +116,7 @@ impl Renderer {
                 gl::LINEAR_MIPMAP_LINEAR as i32,
             );
             gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
-            
+
             gl::TexImage2D(
                 gl::TEXTURE_2D,
                 0,
@@ -130,16 +141,8 @@ impl Renderer {
             gl::GenTextures(1, &mut texture2);
             gl::BindTexture(gl::TEXTURE_2D, texture2);
 
-            gl::TexParameteri(
-                gl::TEXTURE_2D,
-                gl::TEXTURE_WRAP_S,
-                gl::REPEAT as i32,
-            );
-            gl::TexParameteri(
-                gl::TEXTURE_2D,
-                gl::TEXTURE_WRAP_T,
-                gl::REPEAT as i32,
-            );
+            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::REPEAT as i32);
+            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::REPEAT as i32);
 
             gl::TexParameteri(
                 gl::TEXTURE_2D,
@@ -148,7 +151,17 @@ impl Renderer {
             );
             gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
 
-            gl::TexImage2D(gl::TEXTURE_2D, 0, gl::RGB as i32, width as i32, height as i32, 0, gl::RGBA, gl::UNSIGNED_BYTE, pixels.as_ptr() as *const c_void);
+            gl::TexImage2D(
+                gl::TEXTURE_2D,
+                0,
+                gl::RGB as i32,
+                width as i32,
+                height as i32,
+                0,
+                gl::RGBA,
+                gl::UNSIGNED_BYTE,
+                pixels.as_ptr() as *const c_void,
+            );
 
             gl::GenerateMipmap(gl::TEXTURE_2D);
 
@@ -161,7 +174,12 @@ impl Renderer {
             gl::GenBuffers(1, &mut ebo);
 
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ebo);
-            gl::BufferData(gl::ELEMENT_ARRAY_BUFFER, size_of_val(&INDICES) as isize, INDICES.as_ptr() as *const c_void, gl::STATIC_DRAW);
+            gl::BufferData(
+                gl::ELEMENT_ARRAY_BUFFER,
+                size_of_val(&INDICES) as isize,
+                INDICES.as_ptr() as *const c_void,
+                gl::STATIC_DRAW,
+            );
 
             Renderer {
                 vertex_array: vao,
@@ -212,7 +230,4 @@ const VERTICES: [f32; 32] = [
      0.5,  0.5, 0.0,    1.0, 1.0, 0.0,  1.0, 1.0,
 ];
 
-const INDICES: [u32; 6] = [
-    0, 1, 2,
-    1, 2, 3,
-];
+const INDICES: [u32; 6] = [0, 1, 2, 1, 2, 3];

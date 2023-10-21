@@ -142,7 +142,7 @@ pub fn run() {
                         VirtualKeyCode::Escape => {
                             control_flow.set_exit();
                         }
-                        _ => ()
+                        _ => (),
                     }
                 }
                 WindowEvent::Resized(size) => {
