@@ -197,7 +197,7 @@ impl Renderer {
         }
     }
 
-    pub(crate) fn redraw(&self, _time: &Time, visibility: f32) {
+    pub(crate) fn redraw(&self, _time: &Time) {
         unsafe {
             gl::ClearColor(0.2, 0.3, 0.3, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT);
@@ -208,7 +208,23 @@ impl Renderer {
             gl::BindTexture(gl::TEXTURE_2D, self.texture2);
 
             self.shader.bind();
-            self.shader.set_float("visibility", visibility);
+            use wwg_math::base::*;
+            let mut transform = Matrix4::new(
+                1.0, 0.0, 0.0, 0.0,
+                0.0, 1.0, 0.0, 0.0,
+                0.0, 0.0, 1.0, 0.0,
+                0.0, 0.0, 0.0, 1.0,
+            );
+            // let rotation = Quaternion::from_axis_angle(&Vector3::new(0.0, 0.0, 1.0), std::f32::consts::PI / 2.0);
+            // transform *= rotation.to_rotation_matrix();
+            let scale = Matrix4::new(
+                0.5, 0.0, 0.0, 0.0,
+                0.0, 0.5, 0.0, 0.0,
+                0.0, 0.0, 1.0, 0.0,
+                0.0, 0.0, 0.0, 1.0,
+            );
+            transform *= scale;
+            self.shader.set_mat4("transform", transform);
 
             gl::BindVertexArray(self.vertex_array);
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, self.element_buffer);

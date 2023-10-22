@@ -78,8 +78,6 @@ pub fn run() {
     let mut renderer = None;
     let mut state = None;
     let mut time = Time::start();
-    let mut visibility = 0f32;
-    let speed = 1f32;
 
     event_loop.run(move |event, elwt, control_flow| {
         control_flow.set_poll();
@@ -128,21 +126,14 @@ pub fn run() {
             }
             Event::WindowEvent { event, .. } => match event {
                 WindowEvent::KeyboardInput { input, .. } => {
-                    let keycode = input.virtual_keycode.unwrap();
-                    wwg_log::wwg_info!("Key is pressed: {keycode:?}");
-                    match keycode {
-                        VirtualKeyCode::Up => {
-                            visibility += speed * time.delta_time().as_secs_f32();
-                            visibility = visibility.clamp(0.0, 1.0);
+                    if let Some(keycode) = input.virtual_keycode {
+                        wwg_log::wwg_info!("Key is pressed: {keycode:?}");
+                        match keycode {
+                            VirtualKeyCode::Escape => {
+                                control_flow.set_exit();
+                            }
+                            _ => (),
                         }
-                        VirtualKeyCode::Down => {
-                            visibility -= speed * time.delta_time().as_secs_f32();
-                            visibility = visibility.clamp(0.0, 1.0);
-                        }
-                        VirtualKeyCode::Escape => {
-                            control_flow.set_exit();
-                        }
-                        _ => (),
                     }
                 }
                 WindowEvent::Resized(size) => {
@@ -167,7 +158,7 @@ pub fn run() {
             Event::MainEventsCleared => {
                 if let Some((gl_context, gl_surface, window)) = &state {
                     if let Some(rend) = &renderer {
-                        rend.redraw(&time, visibility);
+                        rend.redraw(&time);
                     }
                     window.request_redraw();
                     gl_surface.swap_buffers(gl_context).unwrap();
