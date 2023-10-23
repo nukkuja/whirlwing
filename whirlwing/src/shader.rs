@@ -1,3 +1,4 @@
+#[allow(unused_imports)]
 use std::ptr::{null, null_mut};
 
 use wwg_error::{WhirlwingError, WhirlwingErrorKind};
@@ -286,7 +287,7 @@ impl Shader {
             let mut name = name.to_string();
             name.push('\0');
             let location = gl::GetUniformLocation(self.program_id, name.as_ptr() as *const i8);
-            gl::UniformMatrix4fv(location, 1, gl::FALSE, uniform.data.as_ptr());
+            gl::UniformMatrix4fv(location, 1, gl::FALSE, uniform.ptr());
         }
     }
 

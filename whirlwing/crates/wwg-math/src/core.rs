@@ -1,7 +1,7 @@
 #[repr(C)]
-#[derive(Debug, Default, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub struct Vector3 {
-    pub data: [f32; 3],
+    data: [f32; 3],
 }
 
 impl Vector3 {
@@ -44,12 +44,22 @@ impl Vector3 {
         let len = self.len();
         *self /= len;
     }
+
+    #[inline]
+    pub fn ptr(&self) -> *const f32 {
+        self.data.as_ptr()
+    }
+
+    #[inline]
+    pub fn mut_ptr(&mut self) -> *mut f32 {
+        self.data.as_mut_ptr()
+    }
 }
 
 #[repr(C)]
-#[derive(Debug, Default, Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub struct Vector4 {
-    pub data: [f32; 4],
+    data: [f32; 4],
 }
 
 impl Vector4 {
@@ -57,41 +67,79 @@ impl Vector4 {
     pub fn new(x: f32, y: f32, z: f32, w: f32) -> Self {
         Vector4 { data: [x, y, z, w] }
     }
-}
 
-#[repr(C)]
-#[derive(Debug, Default, Clone, Copy)]
-pub struct Matrix4 {
-    pub data: [f32; 16],
-}
+    #[inline]
+    pub fn ptr(&self) -> *const f32 {
+        self.data.as_ptr()
+    }
 
-impl Matrix4 {
-    pub fn new(
-        x1: f32,
-        x2: f32,
-        x3: f32,
-        x4: f32,
-        y1: f32,
-        y2: f32,
-        y3: f32,
-        y4: f32,
-        z1: f32,
-        z2: f32,
-        z3: f32,
-        z4: f32,
-        w1: f32,
-        w2: f32,
-        w3: f32,
-        w4: f32,
-    ) -> Self {
-        Matrix4 {
-            data: [x1, x2, x3, x4, y1, y2, y3, y4, z1, z2, z3, z4, w1, w2, w3, w4]
-        }
+    #[inline]
+    pub fn mut_ptr(&mut self) -> *mut f32 {
+        self.data.as_mut_ptr()
     }
 }
 
 #[repr(C)]
-#[derive(Debug, Default, Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
+pub struct Matrix4 {
+    data: [f32; 16],
+}
+
+impl Matrix4 {
+    /// I use letter mark for row and number for column.
+    /// The problem with order here is that opengl reads matrix array by columns:
+    /// x1 -> y1 -> z1 -> w1 -> x2 -> y2 and so on.
+    /// But I read it by rows so I need to transpose before putting it into the data.
+    /// If I want to change it in the future I should also change order in deref.rs.
+    #[rustfmt::skip]
+    #[inline]
+    pub fn new(
+        x1: f32, x2: f32, x3: f32, x4: f32,
+        y1: f32, y2: f32, y3: f32, y4: f32,
+        z1: f32, z2: f32, z3: f32, z4: f32,
+        w1: f32, w2: f32, w3: f32, w4: f32,
+    ) -> Self {
+        Matrix4 {
+            data: [
+                x1, y1, z1, w1,
+                x2, y2, z2, w2,
+                x3, y3, z3, w3,
+                x4, y4, z4, w4,
+            ]
+        }
+    }
+
+    #[rustfmt::skip]
+    #[inline]
+    pub fn one() -> Self {
+        Matrix4 { 
+            data: [
+                1.0, 0.0, 0.0, 0.0,
+                0.0, 1.0, 0.0, 0.0,
+                0.0, 0.0, 1.0, 0.0,
+                0.0, 0.0, 0.0, 1.0,
+            ]
+        }
+    }
+
+    #[inline]
+    pub fn zero() -> Self {
+        Matrix4 { data: [0.0; 16] }
+    }
+
+    #[inline]
+    pub fn ptr(&self) -> *const f32 {
+        self.data.as_ptr()
+    }
+
+    #[inline]
+    pub fn mut_ptr(&mut self) -> *mut f32 {
+        self.data.as_mut_ptr()
+    }
+}
+
+#[repr(C)]
+#[derive(Debug, Clone, Copy)]
 pub struct Quaternion {
     pub w: f32,
     pub i: f32,
@@ -113,14 +161,17 @@ impl Quaternion {
     }
     pub fn to_rotation_matrix(self) -> Matrix4 {
         Matrix4::new(
+            // self.w * self.w + self.i * self.i - self.j * self.j - self.k * self.k,
             1.0 - 2.0 * self.j * self.j - 2.0 * self.k * self.k,
             2.0 * self.i * self.j - 2.0 * self.w * self.k,
             2.0 * self.i * self.k + 2.0 * self.w * self.j,
             0.0,
+            // self.w * self.w - self.i * self.i + self.j * self.j - self.k * self.k,
             2.0 * self.i * self.j + 2.0 * self.w * self.k,
             1.0 - 2.0 * self.i * self.i - 2.0 * self.k * self.k,
             2.0 * self.j * self.k - 2.0 * self.w * self.i,
             0.0,
+            // self.w * self.w - self.i * self.i - self.j * self.j + self.k * self.k,
             2.0 * self.i * self.k - 2.0 * self.w * self.j,
             2.0 * self.j * self.k + 2.0 * self.w * self.i,
             1.0 - 2.0 * self.i * self.i - 2.0 * self.j * self.j,
@@ -132,3 +183,5 @@ impl Quaternion {
         )
     }
 }
+
+// 0, 1, 0, 0, -1, 0, 0, ...

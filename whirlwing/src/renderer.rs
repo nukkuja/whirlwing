@@ -197,7 +197,7 @@ impl Renderer {
         }
     }
 
-    pub(crate) fn redraw(&self, _time: &Time) {
+    pub(crate) fn redraw(&self, time: &Time) {
         unsafe {
             gl::ClearColor(0.2, 0.3, 0.3, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT);
@@ -209,23 +209,11 @@ impl Renderer {
 
             self.shader.bind();
             use wwg_math::core::*;
-            let mut transform = Matrix4::new(
-                1.0, 0.0, 0.0, 0.0,
-                0.0, 1.0, 0.0, 0.0,
-                0.0, 0.0, 1.0, 0.0,
-                0.0, 0.0, 0.0, 1.0,
-            );
-
-            let rotation = Quaternion::from_axis_angle(&Vector3::new(0.0, 0.0, 1.0), std::f32::consts::PI / 2.0).to_rotation_matrix();
-            transform = rotation * transform;
-
-            let scale = Matrix4::new(
-                0.5, 0.0, 0.0, 0.0,
-                0.0, 0.5, 0.0, 0.0,
-                0.0, 0.0, 1.0, 0.0,
-                0.0, 0.0, 0.0, 1.0,
-            );
-            transform *= scale;
+            use wwg_math::transform::Transform;
+            let position = Vector3::new(0.3, -0.5, 0.0);
+            let rotation = Quaternion::from_axis_angle(&Vector3::new(0.0, 0.0, 1.0), time.now().as_secs_f32());
+            let scale = Vector3::new(1.0, 0.5, 1.0);
+            let transform = Transform::new(&position, &rotation, &scale).matrix();
             self.shader.set_mat4("transform", &transform);
 
             gl::BindVertexArray(self.vertex_array);
