@@ -1,8 +1,8 @@
 macro_rules! impl_op {
     (
-        $trait:ident for $type: ty {
-            fn $method:ident($self: ident, $rhs: ident) -> $output:ty
-                $body:block
+        $trait: ident for $type: ty {
+            fn $method: ident($self: ident, $rhs: ident) -> $output: ty
+                $body: block
         }
     ) => {
         impl $trait for $type {
@@ -35,9 +35,9 @@ macro_rules! impl_op {
         }
     };
     (
-        $trait:ident<$rhs_type:ty> for $type:ty {
-            fn $method:ident($self:ident, $rhs:ident) -> $output:ty
-                $body:block
+        $trait: ident<$rhs_type: ty> for $type: ty {
+            fn $method: ident($self: ident, $rhs: ident) -> $output:ty
+                $body: block
         }
     ) => {
         impl $trait<$rhs_type> for $type {
@@ -73,9 +73,9 @@ macro_rules! impl_op {
 
 macro_rules! impl_op_assign {
     (
-        $trait:ident for $type: ty {
-            fn $method:ident($self: ident, $rhs: ident)
-                $body:block
+        $trait: ident for $type: ty {
+            fn $method: ident($self: ident, $rhs: ident)
+                $body: block
         }
     ) => {
         impl $trait for $type {
@@ -92,9 +92,9 @@ macro_rules! impl_op_assign {
         }
     };
     (
-        $trait:ident<$rhs_type:ty> for $type: ty {
-            fn $method:ident($self: ident, $rhs: ident)
-                $body:block
+        $trait: ident<$rhs_type: ty> for $type: ty {
+            fn $method: ident($self: ident, $rhs: ident)
+                $body: block
         }
     ) => {
         impl $trait<$rhs_type> for $type {
@@ -113,15 +113,15 @@ macro_rules! impl_op_assign {
 }
 
 use std::ops::{Add, AddAssign, Sub, SubAssign, Mul, MulAssign, Div, DivAssign};
-use crate::base::*;
+use crate::core::*;
 
 impl_op!(Add for Vector3 {
     fn add(self, rhs) -> Vector3 {
-        Vector3 {
-            x: self.x + rhs.x,
-            y: self.y + rhs.y,
-            z: self.z + rhs.z,
-        }
+        Vector3::new(
+            self.x + rhs.x,
+            self.y + rhs.y,
+            self.z + rhs.z,
+        )
     }
 });
 impl_op_assign!(AddAssign for Vector3 {
@@ -133,11 +133,11 @@ impl_op_assign!(AddAssign for Vector3 {
 });
 impl_op!(Sub for Vector3 {
     fn sub(self, rhs) -> Vector3 {
-        Vector3 {
-            x: self.x - rhs.x,
-            y: self.y - rhs.y,
-            z: self.z - rhs.z,
-        }
+        Vector3::new(
+            self.x - rhs.x,
+            self.y - rhs.y,
+            self.z - rhs.z,
+        )
     }
 });
 impl_op_assign!(SubAssign for Vector3 {
@@ -149,11 +149,11 @@ impl_op_assign!(SubAssign for Vector3 {
 });
 impl_op!(Mul<f32> for Vector3 {
     fn mul(self, rhs) -> Vector3 {
-        Vector3 {
-            x: self.x * rhs,
-            y: self.y * rhs,
-            z: self.z * rhs,
-        }
+        Vector3::new(
+            self.x * rhs,
+            self.y * rhs,
+            self.z * rhs,
+        )
     }
 });
 impl_op_assign!(MulAssign<f32> for Vector3 {
@@ -165,11 +165,11 @@ impl_op_assign!(MulAssign<f32> for Vector3 {
 });
 impl_op!(Div<f32> for Vector3 {
     fn div(self, rhs) -> Vector3 {
-        Vector3 {
-            x: self.x / rhs,
-            y: self.y / rhs,
-            z: self.z / rhs,
-        }
+        Vector3::new(
+            self.x / rhs,
+            self.y / rhs,
+            self.z / rhs,
+        )
     }
 });
 impl_op_assign!(DivAssign<f32> for Vector3 {
@@ -182,12 +182,12 @@ impl_op_assign!(DivAssign<f32> for Vector3 {
 
 impl_op!(Add for Vector4 {
     fn add(self, rhs) -> Vector4 {
-        Vector4 {
-            x: self.x + rhs.x,
-            y: self.y + rhs.y,
-            z: self.z + rhs.z,
-            w: self.w + rhs.w,
-        }
+        Vector4::new(
+            self.x + rhs.x,
+            self.y + rhs.y,
+            self.z + rhs.z,
+            self.w + rhs.w,
+        )
     }
 });
 impl_op_assign!(AddAssign for Vector4 {
@@ -200,12 +200,12 @@ impl_op_assign!(AddAssign for Vector4 {
 });
 impl_op!(Sub for Vector4 {
     fn sub(self, rhs) -> Vector4 {
-        Vector4 {
-            x: self.x - rhs.x,
-            y: self.y - rhs.y,
-            z: self.z - rhs.z,
-            w: self.w - rhs.w,
-        }
+        Vector4::new(
+            self.x - rhs.x,
+            self.y - rhs.y,
+            self.z - rhs.z,
+            self.w - rhs.w,
+        )
     }
 });
 impl_op_assign!(SubAssign for Vector4 {
@@ -218,12 +218,12 @@ impl_op_assign!(SubAssign for Vector4 {
 });
 impl_op!(Mul<f32> for Vector4 {
     fn mul(self, rhs) -> Vector4 {
-        Vector4 {
-            x: self.x * rhs,
-            y: self.y * rhs,
-            z: self.z * rhs,
-            w: self.w * rhs,
-        }
+        Vector4::new(
+            self.x * rhs,
+            self.y * rhs,
+            self.z * rhs,
+            self.w * rhs,
+        )
     }
 });
 impl_op_assign!(MulAssign<f32> for Vector4 {
@@ -236,12 +236,12 @@ impl_op_assign!(MulAssign<f32> for Vector4 {
 });
 impl_op!(Div<f32> for Vector4 {
     fn div(self, rhs) -> Vector4 {
-        Vector4 {
-            x: self.x / rhs,
-            y: self.y / rhs,
-            z: self.z / rhs,
-            w: self.w / rhs,
-        }
+        Vector4::new(
+            self.x / rhs,
+            self.y / rhs,
+            self.z / rhs,
+            self.w / rhs,
+        )
     }
 });
 impl_op_assign!(DivAssign<f32> for Vector4 {
@@ -255,24 +255,24 @@ impl_op_assign!(DivAssign<f32> for Vector4 {
 
 impl_op!(Add for Matrix4 {
     fn add(self, rhs) -> Matrix4 {
-        Matrix4 {
-            x1: self.x1 + rhs.x1,
-            x2: self.x2 + rhs.x2,
-            x3: self.x3 + rhs.x3,
-            x4: self.x4 + rhs.x4,
-            y1: self.y1 + rhs.y1,
-            y2: self.y2 + rhs.y2,
-            y3: self.y3 + rhs.y3,
-            y4: self.y4 + rhs.y4,
-            z1: self.z1 + rhs.z1,
-            z2: self.z2 + rhs.z2,
-            z3: self.z3 + rhs.z3,
-            z4: self.z4 + rhs.z4,
-            w1: self.w1 + rhs.w1,
-            w2: self.w2 + rhs.w2,
-            w3: self.w3 + rhs.w3,
-            w4: self.w4 + rhs.w4,
-        }
+        Matrix4::new(
+            self.x1 + rhs.x1,
+            self.x2 + rhs.x2,
+            self.x3 + rhs.x3,
+            self.x4 + rhs.x4,
+            self.y1 + rhs.y1,
+            self.y2 + rhs.y2,
+            self.y3 + rhs.y3,
+            self.y4 + rhs.y4,
+            self.z1 + rhs.z1,
+            self.z2 + rhs.z2,
+            self.z3 + rhs.z3,
+            self.z4 + rhs.z4,
+            self.w1 + rhs.w1,
+            self.w2 + rhs.w2,
+            self.w3 + rhs.w3,
+            self.w4 + rhs.w4,
+        )
     }
 });
 impl_op_assign!(AddAssign for Matrix4 {
@@ -297,24 +297,24 @@ impl_op_assign!(AddAssign for Matrix4 {
 });
 impl_op!(Sub for Matrix4 {
     fn sub(self, rhs) -> Matrix4 {
-        Matrix4 {
-            x1: self.x1 - rhs.x1,
-            x2: self.x2 - rhs.x2,
-            x3: self.x3 - rhs.x3,
-            x4: self.x4 - rhs.x4,
-            y1: self.y1 - rhs.y1,
-            y2: self.y2 - rhs.y2,
-            y3: self.y3 - rhs.y3,
-            y4: self.y4 - rhs.y4,
-            z1: self.z1 - rhs.z1,
-            z2: self.z2 - rhs.z2,
-            z3: self.z3 - rhs.z3,
-            z4: self.z4 - rhs.z4,
-            w1: self.w1 - rhs.w1,
-            w2: self.w2 - rhs.w2,
-            w3: self.w3 - rhs.w3,
-            w4: self.w4 - rhs.w4,
-        }
+        Matrix4::new(
+            self.x1 - rhs.x1,
+            self.x2 - rhs.x2,
+            self.x3 - rhs.x3,
+            self.x4 - rhs.x4,
+            self.y1 - rhs.y1,
+            self.y2 - rhs.y2,
+            self.y3 - rhs.y3,
+            self.y4 - rhs.y4,
+            self.z1 - rhs.z1,
+            self.z2 - rhs.z2,
+            self.z3 - rhs.z3,
+            self.z4 - rhs.z4,
+            self.w1 - rhs.w1,
+            self.w2 - rhs.w2,
+            self.w3 - rhs.w3,
+            self.w4 - rhs.w4,
+        )
     }
 });
 impl_op_assign!(SubAssign for Matrix4 {
@@ -339,24 +339,24 @@ impl_op_assign!(SubAssign for Matrix4 {
 });
 impl_op!(Mul for Matrix4 {
     fn mul(self, rhs) -> Matrix4 {
-        Matrix4 {
-            x1: (self.x1 * rhs.x1) + (self.x2 * rhs.y1) + (self.x3 * rhs.z1) + (self.x4 * rhs.w1),
-            x2: (self.x1 * rhs.x2) + (self.x2 * rhs.y2) + (self.x3 * rhs.z2) + (self.x4 * rhs.w2),
-            x3: (self.x1 * rhs.x3) + (self.x2 * rhs.y3) + (self.x3 * rhs.z3) + (self.x4 * rhs.w3),
-            x4: (self.x1 * rhs.x4) + (self.x2 * rhs.y4) + (self.x3 * rhs.z4) + (self.x4 * rhs.w4),
-            y1: (self.y1 * rhs.x1) + (self.y2 * rhs.y1) + (self.y3 * rhs.z1) + (self.y4 * rhs.w1),
-            y2: (self.y1 * rhs.x2) + (self.y2 * rhs.y2) + (self.y3 * rhs.z2) + (self.y4 * rhs.w2),
-            y3: (self.y1 * rhs.x3) + (self.y2 * rhs.y3) + (self.y3 * rhs.z3) + (self.y4 * rhs.w3),
-            y4: (self.y1 * rhs.x4) + (self.y2 * rhs.y4) + (self.y3 * rhs.z4) + (self.y4 * rhs.w4),
-            z1: (self.z1 * rhs.x1) + (self.z2 * rhs.y1) + (self.z3 * rhs.z1) + (self.z4 * rhs.w1),
-            z2: (self.z1 * rhs.x2) + (self.z2 * rhs.y2) + (self.z3 * rhs.z2) + (self.z4 * rhs.w2),
-            z3: (self.z1 * rhs.x3) + (self.z2 * rhs.y3) + (self.z3 * rhs.z3) + (self.z4 * rhs.w3),
-            z4: (self.z1 * rhs.x4) + (self.z2 * rhs.y4) + (self.z3 * rhs.z4) + (self.z4 * rhs.w4),
-            w1: (self.w1 * rhs.x1) + (self.w2 * rhs.y1) + (self.w3 * rhs.z1) + (self.w4 * rhs.w1),
-            w2: (self.w1 * rhs.x2) + (self.w2 * rhs.y2) + (self.w3 * rhs.z2) + (self.w4 * rhs.w2),
-            w3: (self.w1 * rhs.x3) + (self.w2 * rhs.y3) + (self.w3 * rhs.z3) + (self.w4 * rhs.w3),
-            w4: (self.w1 * rhs.x4) + (self.w2 * rhs.y4) + (self.w3 * rhs.z4) + (self.w4 * rhs.w4),
-        }
+        Matrix4::new(
+            (self.x1 * rhs.x1) + (self.x2 * rhs.y1) + (self.x3 * rhs.z1) + (self.x4 * rhs.w1),
+            (self.x1 * rhs.x2) + (self.x2 * rhs.y2) + (self.x3 * rhs.z2) + (self.x4 * rhs.w2),
+            (self.x1 * rhs.x3) + (self.x2 * rhs.y3) + (self.x3 * rhs.z3) + (self.x4 * rhs.w3),
+            (self.x1 * rhs.x4) + (self.x2 * rhs.y4) + (self.x3 * rhs.z4) + (self.x4 * rhs.w4),
+            (self.y1 * rhs.x1) + (self.y2 * rhs.y1) + (self.y3 * rhs.z1) + (self.y4 * rhs.w1),
+            (self.y1 * rhs.x2) + (self.y2 * rhs.y2) + (self.y3 * rhs.z2) + (self.y4 * rhs.w2),
+            (self.y1 * rhs.x3) + (self.y2 * rhs.y3) + (self.y3 * rhs.z3) + (self.y4 * rhs.w3),
+            (self.y1 * rhs.x4) + (self.y2 * rhs.y4) + (self.y3 * rhs.z4) + (self.y4 * rhs.w4),
+            (self.z1 * rhs.x1) + (self.z2 * rhs.y1) + (self.z3 * rhs.z1) + (self.z4 * rhs.w1),
+            (self.z1 * rhs.x2) + (self.z2 * rhs.y2) + (self.z3 * rhs.z2) + (self.z4 * rhs.w2),
+            (self.z1 * rhs.x3) + (self.z2 * rhs.y3) + (self.z3 * rhs.z3) + (self.z4 * rhs.w3),
+            (self.z1 * rhs.x4) + (self.z2 * rhs.y4) + (self.z3 * rhs.z4) + (self.z4 * rhs.w4),
+            (self.w1 * rhs.x1) + (self.w2 * rhs.y1) + (self.w3 * rhs.z1) + (self.w4 * rhs.w1),
+            (self.w1 * rhs.x2) + (self.w2 * rhs.y2) + (self.w3 * rhs.z2) + (self.w4 * rhs.w2),
+            (self.w1 * rhs.x3) + (self.w2 * rhs.y3) + (self.w3 * rhs.z3) + (self.w4 * rhs.w3),
+            (self.w1 * rhs.x4) + (self.w2 * rhs.y4) + (self.w3 * rhs.z4) + (self.w4 * rhs.w4),
+        )
     }
 });
 impl_op_assign!(MulAssign for Matrix4 {
@@ -381,11 +381,11 @@ impl_op_assign!(MulAssign for Matrix4 {
 });
 impl_op!(Mul<Vector4> for Matrix4 {
     fn mul(self, rhs) -> Vector4 {
-        Vector4 {
-            x: (self.x1 * rhs.x) + (self.x2 * rhs.y) + (self.x3 * rhs.z) + (self.x4 * rhs.w),
-            y: (self.y1 * rhs.x) + (self.y2 * rhs.y) + (self.y3 * rhs.z) + (self.y4 * rhs.w),
-            z: (self.z1 * rhs.x) + (self.z2 * rhs.y) + (self.z3 * rhs.z) + (self.z4 * rhs.w),
-            w: (self.w1 * rhs.x) + (self.w2 * rhs.y) + (self.w3 * rhs.z) + (self.w4 * rhs.w),
-        }
+        Vector4::new(
+            (self.x1 * rhs.x) + (self.x2 * rhs.y) + (self.x3 * rhs.z) + (self.x4 * rhs.w),
+            (self.y1 * rhs.x) + (self.y2 * rhs.y) + (self.y3 * rhs.z) + (self.y4 * rhs.w),
+            (self.z1 * rhs.x) + (self.z2 * rhs.y) + (self.z3 * rhs.z) + (self.z4 * rhs.w),
+            (self.w1 * rhs.x) + (self.w2 * rhs.y) + (self.w3 * rhs.z) + (self.w4 * rhs.w),
+        )
     }
 });

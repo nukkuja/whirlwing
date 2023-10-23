@@ -208,15 +208,19 @@ impl Renderer {
             gl::BindTexture(gl::TEXTURE_2D, self.texture2);
 
             self.shader.bind();
-            use wwg_math::base::*;
+            use wwg_math::core::*;
             let mut transform = Matrix4::new(
                 1.0, 0.0, 0.0, 0.0,
                 0.0, 1.0, 0.0, 0.0,
                 0.0, 0.0, 1.0, 0.0,
                 0.0, 0.0, 0.0, 1.0,
             );
-            // let rotation = Quaternion::from_axis_angle(&Vector3::new(0.0, 0.0, 1.0), std::f32::consts::PI / 2.0);
-            // transform *= rotation.to_rotation_matrix();
+            let rotation = Quaternion::from_axis_angle(&Vector3::new(0.0, 0.0, 1.0), std::f32::consts::PI / 2.0);
+            wwg_log::wwg_debug!("Quaternion value: {rotation:?}");
+            let rotation = rotation.to_rotation_matrix();
+            wwg_log::wwg_debug!("Rotation matrix value: {rotation:?}");
+
+            transform = rotation * transform;
             let scale = Matrix4::new(
                 0.5, 0.0, 0.0, 0.0,
                 0.0, 0.5, 0.0, 0.0,
@@ -224,7 +228,7 @@ impl Renderer {
                 0.0, 0.0, 0.0, 1.0,
             );
             transform *= scale;
-            self.shader.set_mat4("transform", transform);
+            self.shader.set_mat4("transform", &transform);
 
             gl::BindVertexArray(self.vertex_array);
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, self.element_buffer);
