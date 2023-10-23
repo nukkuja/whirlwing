@@ -215,12 +215,10 @@ impl Renderer {
                 0.0, 0.0, 1.0, 0.0,
                 0.0, 0.0, 0.0, 1.0,
             );
-            let rotation = Quaternion::from_axis_angle(&Vector3::new(0.0, 0.0, 1.0), std::f32::consts::PI / 2.0);
-            wwg_log::wwg_debug!("Quaternion value: {rotation:?}");
-            let rotation = rotation.to_rotation_matrix();
-            wwg_log::wwg_debug!("Rotation matrix value: {rotation:?}");
 
+            let rotation = Quaternion::from_axis_angle(&Vector3::new(0.0, 0.0, 1.0), std::f32::consts::PI / 2.0).to_rotation_matrix();
             transform = rotation * transform;
+
             let scale = Matrix4::new(
                 0.5, 0.0, 0.0, 0.0,
                 0.0, 0.5, 0.0, 0.0,

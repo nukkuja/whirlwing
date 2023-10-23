@@ -1,3 +1,4 @@
+#[repr(C)]
 #[derive(Debug, Default, PartialEq, Clone, Copy)]
 pub struct Vector3 {
     pub data: [f32; 3],
@@ -45,6 +46,7 @@ impl Vector3 {
     }
 }
 
+#[repr(C)]
 #[derive(Debug, Default, Clone, Copy)]
 pub struct Vector4 {
     pub data: [f32; 4],
@@ -57,6 +59,7 @@ impl Vector4 {
     }
 }
 
+#[repr(C)]
 #[derive(Debug, Default, Clone, Copy)]
 pub struct Matrix4 {
     pub data: [f32; 16],
@@ -87,6 +90,7 @@ impl Matrix4 {
     }
 }
 
+#[repr(C)]
 #[derive(Debug, Default, Clone, Copy)]
 pub struct Quaternion {
     pub w: f32,
