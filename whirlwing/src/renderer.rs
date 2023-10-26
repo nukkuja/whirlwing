@@ -55,7 +55,7 @@ impl Renderer {
                 gl::FLOAT,
                 gl::FALSE,
                 8 * size_of::<f32>() as i32,
-                0usize as *const c_void,
+                std::ptr::null(),
             );
             gl::EnableVertexAttribArray(0);
 
@@ -210,11 +210,18 @@ impl Renderer {
             self.shader.bind();
             use wwg_math::core::*;
             use wwg_math::transform::Transform;
-            let position = Vector3::new(0.3, -0.5, 0.0);
-            let rotation = Quaternion::from_axis_angle(&Vector3::new(0.0, 0.0, 1.0), time.now().as_secs_f32());
-            let scale = Vector3::new(1.0, 0.5, 1.0);
-            let transform = Transform::new(&position, &rotation, &scale).matrix();
-            self.shader.set_mat4("transform", &transform);
+
+            let rot = Quaternion::from_axis_angle(&Vector3::new(1.0, 0.0, 0.0), -55.0f32.to_radians());
+            let model = Transform::new(&Vector3::zero(), &rot, &Vector3::one());
+            let view = Matrix4::new(
+                1.0, 0.0, 0.0, 0.0,
+                0.0, 1.0, 0.0, 0.0,
+                0.0, 0.0, 1.0, -3.0,
+                0.0, 0.0, 0.0, 1.0  
+            );
+            
+            self.shader.set_mat4("transform", &model.matrix());
+
 
             gl::BindVertexArray(self.vertex_array);
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, self.element_buffer);

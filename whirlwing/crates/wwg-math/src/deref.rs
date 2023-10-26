@@ -3,12 +3,14 @@
 
 macro_rules! coords_struct {
     ($name: ident, $($params: ident),+) => {
+        #[allow(clippy::upper_case_acronyms)]
         #[repr(C)]
         pub struct $name {
             $(pub $params: f32),+
         }
     };
     ($name: ident, $($params: ident),+,) => {
+        #[allow(clippy::upper_case_acronyms)]
         #[repr(C)]
         pub struct $name {
             $(pub $params: f32),+
@@ -31,20 +33,14 @@ macro_rules! impl_deref {
                 unsafe { &mut *(self.mut_ptr() as *mut Self::Target) }
             }
         }
-    }
+    };
 }
 
 coords_struct!(XYZ, x, y, z);
 coords_struct!(XYZW, x, y, z, w);
 
-// For strange order explanation, see Matrix4::new()
-coords_struct!(
-    M4,
-    x1, y1, z1, w1,
-    x2, y2, z2, w2,
-    x3, y3, z3, w3,
-    x4, y4, z4, w4,
-);
+// Change this if you want row-major matrix order
+coords_struct!(M4, x1, y1, z1, w1, x2, y2, z2, w2, x3, y3, z3, w3, x4, y4, z4, w4,);
 
 use crate::core::*;
 

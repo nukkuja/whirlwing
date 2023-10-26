@@ -19,6 +19,7 @@ impl Transform {
 
     #[inline]
     pub fn matrix(self) -> Matrix4 {
+        #[rustfmt::skip]
         let pos = Matrix4::new(
             1.0, 0.0, 0.0, self.position.x,
             0.0, 1.0, 0.0, self.position.y,
@@ -26,13 +27,13 @@ impl Transform {
             0.0, 0.0, 0.0, 1.0
         );
         let rot = self.rotation.to_rotation_matrix();
+        #[rustfmt::skip]
         let scale = Matrix4::new(
             self.scale.x, 0.0, 0.0, 0.0,
             0.0, self.scale.y, 0.0, 0.0,
             0.0, 0.0, self.scale.z, 0.0,
             0.0, 0.0, 0.0, 1.0,
         );
-        // scale
-        &pos * &rot * &scale
+        pos * rot * scale
     }
 }

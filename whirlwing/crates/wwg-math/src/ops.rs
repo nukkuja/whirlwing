@@ -112,8 +112,8 @@ macro_rules! impl_op_assign {
     }
 }
 
-use std::ops::{Add, AddAssign, Sub, SubAssign, Mul, MulAssign, Div, DivAssign};
 use crate::core::*;
+use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 
 impl_op!(Add for Vector3 {
     fn add(self, rhs) -> Vector3 {

@@ -11,6 +11,16 @@ impl Vector3 {
     }
 
     #[inline]
+    pub fn zero() -> Self {
+        Vector3 { data: [0.0, 0.0, 0.0] }
+    }
+
+    #[inline]
+    pub fn one() -> Self {
+        Vector3 { data: [1.0, 1.0, 1.0] }
+    }
+
+    #[inline]
     pub fn len(&self) -> f32 {
         f32::sqrt((self.x * self.x) + (self.y * self.y) + (self.z * self.z))
     }
@@ -25,18 +35,14 @@ impl Vector3 {
         Vector3::new(
             (self.y * rhs.z) - (self.z * rhs.y),
             (self.z * rhs.x) - (self.x * rhs.z),
-            (self.x * rhs.y) - (self.y * rhs.x)
+            (self.x * rhs.y) - (self.y * rhs.x),
         )
     }
 
     #[inline]
     pub fn normalized(&self) -> Vector3 {
         let len = self.len();
-        Vector3::new(
-            self.x / len,
-            self.y / len,
-            self.z / len,
-        )
+        Vector3::new(self.x / len, self.y / len, self.z / len)
     }
 
     #[inline]
@@ -86,12 +92,10 @@ pub struct Matrix4 {
 }
 
 impl Matrix4 {
-    /// I use letter mark for row and number for column.
-    /// The problem with order here is that opengl reads matrix array by columns:
-    /// x1 -> y1 -> z1 -> w1 -> x2 -> y2 and so on.
-    /// But I read it by rows so I need to transpose before putting it into the data.
-    /// If I want to change it in the future I should also change order in deref.rs.
+    /// OpenGL uses matrices with column major order so I defined it this way.
+    /// If I need to change it I would also need to change the order in deref.rs file.
     #[rustfmt::skip]
+    #[allow(clippy::too_many_arguments)]
     #[inline]
     pub fn new(
         x1: f32, x2: f32, x3: f32, x4: f32,
@@ -112,7 +116,7 @@ impl Matrix4 {
     #[rustfmt::skip]
     #[inline]
     pub fn one() -> Self {
-        Matrix4 { 
+        Matrix4 {
             data: [
                 1.0, 0.0, 0.0, 0.0,
                 0.0, 1.0, 0.0, 0.0,
@@ -183,5 +187,3 @@ impl Quaternion {
         )
     }
 }
-
-// 0, 1, 0, 0, -1, 0, 0, ...
