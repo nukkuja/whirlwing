@@ -197,7 +197,7 @@ impl Renderer {
         }
     }
 
-    pub(crate) fn redraw(&self, time: &Time) {
+    pub(crate) fn redraw(&self, _time: &Time) {
         unsafe {
             gl::ClearColor(0.2, 0.3, 0.3, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT);
@@ -219,8 +219,23 @@ impl Renderer {
                 0.0, 0.0, 1.0, -3.0,
                 0.0, 0.0, 0.0, 1.0  
             );
-            
-            self.shader.set_mat4("transform", &model.matrix());
+
+            let near = 0.1f32;
+            let far = 100.0f32;
+            let angle_rad = 0.7f32;
+            let aspect = 800.0f32 / 600.0f32;
+            let half_cot = 1.0f32 / f32::tan(angle_rad / 2.0f32);
+
+            let projection = Matrix4::new(
+                half_cot / aspect, 0.0, 0.0, 0.0,
+                0.0, half_cot, 0.0, 0.0,
+                0.0, 0.0, (far + near) / (near - far), (2.0 * far * near) / (near - far),
+                0.0, 0.0, -1.0, 0.0
+            );
+
+            self.shader.set_mat4("model", &model.matrix());
+            self.shader.set_mat4("view", &view);
+            self.shader.set_mat4("projection", &projection);
 
 
             gl::BindVertexArray(self.vertex_array);

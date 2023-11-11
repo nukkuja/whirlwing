@@ -140,6 +140,16 @@ impl Matrix4 {
     pub fn mut_ptr(&mut self) -> *mut f32 {
         self.data.as_mut_ptr()
     }
+
+    #[inline]
+    pub fn transpose(&mut self) {
+        (self.x2, self.y1) = (self.y1, self.x2);
+        (self.x3, self.z1) = (self.z1, self.x3);
+        (self.x4, self.w1) = (self.w1, self.x4);
+        (self.y3, self.z2) = (self.z2, self.y3);
+        (self.y4, self.w2) = (self.w2, self.y4);
+        (self.z4, self.w3) = (self.w3, self.z4);
+    }
 }
 
 #[repr(C)]
