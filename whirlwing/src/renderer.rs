@@ -211,18 +211,36 @@ impl Renderer {
             self.shader.bind();
             use wwg_math::core::*;
             use wwg_math::transform::*;
-            // wwg_log::wwg_debug!("Time: {}", time.now().as_secs_f32());
             let angle = time.now().as_secs_f32() * 1.5f32;
-
-            let rot = Quaternion::from_axis_angle(&Vector3::new(1.0, 0.3, 0.5).normalized(), angle);
+            let rot = Quaternion::from_axis_angle(&Vector3::new(0.0, 0.0, 1.0).normalized(), 0.0f32);
             let model = Transform::new(Vector3::zero(), rot, Vector3::one());
-            let view = Matrix4::new(
-                1.0, 0.0, 0.0, 0.0,
-                0.0, 1.0, 0.0, 0.0,
-                0.0, 0.0, 1.0, -3.0,
-                0.0, 0.0, 0.0, 1.0  
-            );
 
+            // View code
+            let camera_pos = Vector3::new(0.5, 0.0, 3.0);
+            let camera_target = &camera_pos + Vector3::new(0.0, 0.0, -1.0);
+            let camera_target = Vector3::zero();
+            // If I want to invert z axis, then I need to switch camera_pos and camera_target I guess
+            let camera_direction = (&camera_pos - camera_target).normalized();
+            let camera_right = Vector3::cross(&Vector3::new(0.0, 1.0, 0.0), &camera_direction).normalized();
+            let camera_up = Vector3::cross(&camera_direction, &camera_right).normalized();
+
+            let neg_cam_pos = -camera_pos;
+            let mut view = Matrix4::new(
+                camera_right.x, camera_right.y, camera_right.z, neg_cam_pos.x,
+                camera_up.x, camera_up.y, camera_up.z, neg_cam_pos.y,
+                camera_direction.x, camera_direction.y, camera_direction.z, neg_cam_pos.z,
+                0.0, 0.0, 0.0, 1.0,
+            );
+            // view.transpose();
+            // let mut pos = Matrix4::new(
+            //     1.0, 0.0, 0.0, -camera_pos.x,
+            //     0.0, 1.0, 0.0, -camera_pos.y,
+            //     0.0, 0.0, 1.0, -camera_pos.z,
+            //     0.0, 0.0, 0.0, 1.0
+            // );
+            // let view = pos * look_at;
+
+            // Projection
             let near = 0.1f32;
             let far = 100.0f32;
             let angle_rad = 0.7f32;

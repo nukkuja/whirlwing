@@ -4,6 +4,22 @@ pub struct Vector3 {
     data: [f32; 3],
 }
 
+impl std::ops::Neg for Vector3 {
+    type Output = Vector3;
+    #[inline]
+    fn neg(self) -> Self::Output {
+        Vector3::new(-self.x, -self.y, -self.z)
+    }
+}
+
+impl std::ops::Neg for &Vector3 {
+    type Output = Vector3;
+    #[inline]
+    fn neg(self) -> Self::Output {
+        Vector3::new(-self.x, -self.y, -self.z)
+    }
+}
+
 impl Vector3 {
     #[inline]
     pub fn new(x: f32, y: f32, z: f32) -> Self {
@@ -26,16 +42,16 @@ impl Vector3 {
     }
 
     #[inline]
-    pub fn dot(&self, rhs: &Self) -> f32 {
-        (self.x * rhs.x) + (self.y * rhs.y) + (self.z * rhs.z)
+    pub fn dot(lhs: &Self, rhs: &Self) -> f32 {
+        (lhs.x * rhs.x) + (lhs.y * rhs.y) + (lhs.z * rhs.z)
     }
 
     #[inline]
-    pub fn cross(&self, rhs: &Self) -> Self {
+    pub fn cross(lhs: &Self, rhs: &Self) -> Self {
         Vector3::new(
-            (self.y * rhs.z) - (self.z * rhs.y),
-            (self.z * rhs.x) - (self.x * rhs.z),
-            (self.x * rhs.y) - (self.y * rhs.x),
+            (lhs.y * rhs.z) - (lhs.z * rhs.y),
+            (lhs.z * rhs.x) - (lhs.x * rhs.z),
+            (lhs.x * rhs.y) - (lhs.y * rhs.x),
         )
     }
 
