@@ -22,6 +22,7 @@ impl Renderer {
 
         unsafe {
             gl::Viewport(0, 0, 800, 600);
+            gl::Enable(gl::DEPTH_TEST);
         }
 
         unsafe {
@@ -54,28 +55,28 @@ impl Renderer {
                 3,
                 gl::FLOAT,
                 gl::FALSE,
-                8 * size_of::<f32>() as i32,
+                5 * size_of::<f32>() as i32,
                 std::ptr::null(),
             );
             gl::EnableVertexAttribArray(0);
 
-            gl::VertexAttribPointer(
-                1,
-                3,
-                gl::FLOAT,
-                gl::FALSE,
-                8 * size_of::<f32>() as i32,
-                (3 * size_of::<f32>()) as *const c_void,
-            );
-            gl::EnableVertexAttribArray(1);
+            // gl::VertexAttribPointer(
+            //     1,
+            //     3,
+            //     gl::FLOAT,
+            //     gl::FALSE,
+            //     8 * size_of::<f32>() as i32,
+            //     (3 * size_of::<f32>()) as *const c_void,
+            // );
+            // gl::EnableVertexAttribArray(1);
 
             gl::VertexAttribPointer(
                 2,
                 2,
                 gl::FLOAT,
                 gl::FALSE,
-                8 * size_of::<f32>() as i32,
-                (6 * size_of::<f32>()) as *const c_void,
+                5 * size_of::<f32>() as i32,
+                (3 * size_of::<f32>()) as *const c_void,
             );
             gl::EnableVertexAttribArray(2);
 
@@ -197,10 +198,10 @@ impl Renderer {
         }
     }
 
-    pub(crate) fn redraw(&self, _time: &Time) {
+    pub(crate) fn redraw(&self, time: &Time) {
         unsafe {
             gl::ClearColor(0.2, 0.3, 0.3, 1.0);
-            gl::Clear(gl::COLOR_BUFFER_BIT);
+            gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 
             gl::ActiveTexture(gl::TEXTURE0);
             gl::BindTexture(gl::TEXTURE_2D, self.texture1);
@@ -210,8 +211,10 @@ impl Renderer {
             self.shader.bind();
             use wwg_math::core::*;
             use wwg_math::transform::*;
+            // wwg_log::wwg_debug!("Time: {}", time.now().as_secs_f32());
+            let angle = time.now().as_secs_f32() * 1.5f32;
 
-            let rot = Quaternion::from_axis_angle(&Vector3::new(1.0, 0.0, 0.0), -55.0f32.to_radians());
+            let rot = Quaternion::from_axis_angle(&Vector3::new(1.0, 0.3, 0.5).normalized(), angle);
             let model = Transform::new(Vector3::zero(), rot, Vector3::one());
             let view = Matrix4::new(
                 1.0, 0.0, 0.0, 0.0,
@@ -224,18 +227,15 @@ impl Renderer {
             let far = 100.0f32;
             let angle_rad = 0.7f32;
             let aspect = 800.0f32 / 600.0f32;
-
             let projection = ProjectionMatrix::new(near, far, angle_rad, aspect);
 
             self.shader.set_mat4("model", &model.matrix());
             self.shader.set_mat4("view", &view);
             self.shader.set_mat4("projection", &projection);
 
-
             gl::BindVertexArray(self.vertex_array);
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, self.element_buffer);
-
-            gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, null());
+            gl::DrawElements(gl::TRIANGLES, 36, gl::UNSIGNED_INT, null());
         }
     }
 }
@@ -245,11 +245,43 @@ impl Drop for Renderer {
 }
 
 #[rustfmt::skip]
-const VERTICES: [f32; 32] = [
-    -0.5, -0.5, 0.0,    1.0, 0.0, 0.0,  0.0, 0.0,
-    -0.5,  0.5, 0.0,    0.0, 1.0, 0.0,  0.0, 1.0,
-     0.5, -0.5, 0.0,    0.0, 0.0, 1.0,  1.0, 0.0,
-     0.5,  0.5, 0.0,    1.0, 1.0, 0.0,  1.0, 1.0,
+const VERTICES: [f32; 120] = [
+    -0.5, -0.5, -0.5,   0.0, 0.0,
+    -0.5,  0.5, -0.5,   0.0, 1.0,
+     0.5, -0.5, -0.5,   1.0, 0.0,
+     0.5,  0.5, -0.5,   1.0, 1.0,
+
+    -0.5, -0.5,  0.5,   0.0, 0.0,
+    -0.5,  0.5,  0.5,   0.0, 1.0,
+     0.5, -0.5,  0.5,   1.0, 0.0,
+     0.5,  0.5,  0.5,   1.0, 1.0,
+
+    -0.5, -0.5, -0.5,   0.0, 0.0,
+    -0.5,  0.5, -0.5,   0.0, 1.0,
+    -0.5, -0.5,  0.5,   1.0, 0.0,
+    -0.5,  0.5,  0.5,   1.0, 1.0,
+
+     0.5, -0.5, -0.5,   0.0, 0.0,
+     0.5,  0.5, -0.5,   0.0, 1.0,
+     0.5, -0.5,  0.5,   1.0, 0.0,
+     0.5,  0.5,  0.5,   1.0, 1.0,
+
+    -0.5, -0.5, -0.5,   0.0, 0.0,
+    -0.5, -0.5,  0.5,   0.0, 1.0,
+     0.5, -0.5, -0.5,   1.0, 0.0,
+     0.5, -0.5,  0.5,   1.0, 1.0,
+
+    -0.5, 0.5, -0.5,   0.0, 0.0,
+    -0.5, 0.5,  0.5,   0.0, 1.0,
+     0.5, 0.5, -0.5,   1.0, 0.0,
+     0.5, 0.5,  0.5,   1.0, 1.0,
 ];
 
-const INDICES: [u32; 6] = [0, 1, 2, 1, 2, 3];
+const INDICES: [u32; 36] = [
+    0, 1, 2, 1, 2, 3,
+    4, 5, 6, 5, 6, 7,
+    8, 9, 10, 9, 10, 11,
+    12, 13, 14, 13, 14, 15,
+    16, 17, 18, 17, 18, 19,
+    20, 21, 22, 21, 22, 23,
+];
