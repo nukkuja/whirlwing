@@ -1,5 +1,5 @@
 #[repr(C)]
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Vector3 {
     data: [f32; 3],
 }
@@ -63,7 +63,7 @@ impl Vector3 {
 }
 
 #[repr(C)]
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct Vector4 {
     data: [f32; 4],
 }
@@ -86,7 +86,7 @@ impl Vector4 {
 }
 
 #[repr(C)]
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct Matrix4 {
     data: [f32; 16],
 }

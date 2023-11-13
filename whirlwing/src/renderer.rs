@@ -209,10 +209,10 @@ impl Renderer {
 
             self.shader.bind();
             use wwg_math::core::*;
-            use wwg_math::transform::Transform;
+            use wwg_math::transform::*;
 
             let rot = Quaternion::from_axis_angle(&Vector3::new(1.0, 0.0, 0.0), -55.0f32.to_radians());
-            let model = Transform::new(&Vector3::zero(), &rot, &Vector3::one());
+            let model = Transform::new(Vector3::zero(), rot, Vector3::one());
             let view = Matrix4::new(
                 1.0, 0.0, 0.0, 0.0,
                 0.0, 1.0, 0.0, 0.0,
@@ -224,14 +224,8 @@ impl Renderer {
             let far = 100.0f32;
             let angle_rad = 0.7f32;
             let aspect = 800.0f32 / 600.0f32;
-            let half_cot = 1.0f32 / f32::tan(angle_rad / 2.0f32);
 
-            let projection = Matrix4::new(
-                half_cot / aspect, 0.0, 0.0, 0.0,
-                0.0, half_cot, 0.0, 0.0,
-                0.0, 0.0, (far + near) / (near - far), (2.0 * far * near) / (near - far),
-                0.0, 0.0, -1.0, 0.0
-            );
+            let projection = ProjectionMatrix::new(near, far, angle_rad, aspect);
 
             self.shader.set_mat4("model", &model.matrix());
             self.shader.set_mat4("view", &view);
