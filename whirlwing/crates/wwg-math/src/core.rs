@@ -37,6 +37,11 @@ impl Vector3 {
     }
 
     #[inline]
+    pub fn up() -> Self {
+        Vector3 { data: [0.0, 1.0, 0.0] }
+    }
+
+    #[inline]
     pub fn len(&self) -> f32 {
         f32::sqrt((self.x * self.x) + (self.y * self.y) + (self.z * self.z))
     }

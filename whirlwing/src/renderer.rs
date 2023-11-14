@@ -215,31 +215,25 @@ impl Renderer {
             let rot = Quaternion::from_axis_angle(&Vector3::new(0.0, 0.0, 1.0).normalized(), 0.0f32);
             let model = Transform::new(Vector3::zero(), rot, Vector3::one());
 
-            // View code
-            let camera_pos = Vector3::new(0.5, 0.0, 3.0);
-            let camera_target = &camera_pos + Vector3::new(0.0, 0.0, -1.0);
-            let camera_target = Vector3::zero();
-            // If I want to invert z axis, then I need to switch camera_pos and camera_target I guess
-            let camera_direction = (&camera_pos - camera_target).normalized();
-            let camera_right = Vector3::cross(&Vector3::new(0.0, 1.0, 0.0), &camera_direction).normalized();
-            let camera_up = Vector3::cross(&camera_direction, &camera_right).normalized();
-
-            let neg_cam_pos = -camera_pos;
-            let mut view = Matrix4::new(
-                camera_right.x, camera_right.y, camera_right.z, neg_cam_pos.x,
-                camera_up.x, camera_up.y, camera_up.z, neg_cam_pos.y,
-                camera_direction.x, camera_direction.y, camera_direction.z, neg_cam_pos.z,
-                0.0, 0.0, 0.0, 1.0,
+            // Finally it works as expected!!!
+            let eye = Vector3::new(2.0, 2.0, 5.0);
+            let target = Vector3::zero();
+            let zaxis = (&target - &eye).normalized();
+            let xaxis = Vector3::cross(&zaxis, &Vector3::up()).normalized();
+            let yaxis = Vector3::cross(&xaxis, &zaxis).normalized();
+            let neg_eye = -&eye;
+            let view = Matrix4::new(
+                xaxis.x, xaxis.y, xaxis.z, Vector3::dot(&xaxis, &neg_eye),
+                yaxis.x, yaxis.y, yaxis.z, Vector3::dot(&yaxis, &neg_eye),
+                -zaxis.x, -zaxis.y, -zaxis.z, Vector3::dot(&zaxis, &eye),
+                0.0, 0.0, 0.0, 1.0
             );
-            // view.transpose();
-            // let mut pos = Matrix4::new(
-            //     1.0, 0.0, 0.0, -camera_pos.x,
-            //     0.0, 1.0, 0.0, -camera_pos.y,
-            //     0.0, 0.0, 1.0, -camera_pos.z,
-            //     0.0, 0.0, 0.0, 1.0
-            // );
-            // let view = pos * look_at;
 
+            wwg_log::wwg_info!(
+                "Eye: {eye:?},\nTarget: {target:?},\nzaxis: {zaxis:?},\nxaxis: {xaxis:?},\nyaxis: {yaxis:?}"
+            );
+
+            // view.transpose();
             // Projection
             let near = 0.1f32;
             let far = 100.0f32;
