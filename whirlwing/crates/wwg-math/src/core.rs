@@ -32,7 +32,7 @@ impl Vector3 {
 
     #[inline]
     pub fn dot(&self, rhs: &Self) -> f32 {
-        (self.x * self.x) + (self.y * rhs.y) + (self.z * rhs.z)
+        (self.x * rhs.x) + (self.y * rhs.y) + (self.z * rhs.z)
     }
 
     #[inline]

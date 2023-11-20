@@ -217,24 +217,24 @@ impl Renderer {
 
             // Finally it works as expected!!!
             let eye = Vector3::new(2.0, 2.0, 5.0);
-            // let target = &eye + Vector3::new(0.0, 0.0, -1.0);
+            let target = &eye + Vector3::new(0.0, 0.0, -1.0);
             let target = Vector3::zero();
             let zaxis = (&target - &eye).normalized();
             let xaxis = Vector3::cross(&zaxis, &Vector3::up()).normalized();
             let yaxis = Vector3::cross(&xaxis, &zaxis).normalized();
-            let neg_eye = -&eye;
+            let neg_eye =   -&eye;
             let view = Matrix4::new(
                 xaxis.x, xaxis.y, xaxis.z, Vector3::dot(&xaxis, &neg_eye),
                 yaxis.x, yaxis.y, yaxis.z, Vector3::dot(&yaxis, &neg_eye),
                 -zaxis.x, -zaxis.y, -zaxis.z, Vector3::dot(&zaxis, &eye),
-                0.0, 0.0, 0.0, 1.0
+                0.0, 0.0, 0.0, 1.0,
             );
 
-            wwg_log::wwg_info!(
-                "Eye: {eye:?},\nTarget: {target:?},\nzaxis: {zaxis:?},\nxaxis: {xaxis:?},\nyaxis: {yaxis:?}\neye: {eye:?}\nneg_eye: {neg_eye:?}"
-            );
+            // wwg_log::wwg_info!(
+            //     "Eye: {eye:?},\nTarget: {target:?},\nzaxis: {zaxis:?},\nxaxis: {xaxis:?},\nyaxis: {yaxis:?}\neye: {eye:?}\nneg_eye: {neg_eye:?}"
+            // );
+            wwg_log::wwg_info!("{view:?}");
 
-            // view.transpose();
             // Projection
             let near = 0.1f32;
             let far = 100.0f32;
