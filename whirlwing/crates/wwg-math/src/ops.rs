@@ -111,9 +111,34 @@ macro_rules! impl_op_assign {
         }
     }
 }
+macro_rules! impl_un {
+    (
+        $trait:ident for $type:ty {
+            fn $method:ident ($self:ident) -> $output:ty
+                $body:block
+        }
+    ) => {
+        impl $trait for $type {
+            type Output = $output;
+            #[inline]
+            fn $method($self) -> Self::Output {
+                $body
+            }
+        }
+        impl $trait for &$type {
+            type Output = $output;
+            #[inline]
+            fn $method($self) -> Self::Output {
+                $body
+            }
+        }
+    };
+}
 
 use crate::core::*;
-use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
+use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign, Neg};
+
+// ----- Vector3 -----
 
 impl_op!(Add for Vector3 {
     fn add(self, rhs) -> Vector3 {
@@ -179,6 +204,13 @@ impl_op_assign!(DivAssign<f32> for Vector3 {
         self.z /= rhs;
     }
 });
+impl_un!(Neg for Vector3 {
+    fn neg(self) -> Vector3 {
+        Vector3::new(-self.x, -self.y, -self.z)
+    }
+});
+
+// ----- Vector4 -----
 
 impl_op!(Add for Vector4 {
     fn add(self, rhs) -> Vector4 {
@@ -252,6 +284,8 @@ impl_op_assign!(DivAssign<f32> for Vector4 {
         self.w /= rhs;
     }
 });
+
+// ----- Matrix4 -----
 
 impl_op!(Add for Matrix4 {
     fn add(self, rhs) -> Matrix4 {
@@ -387,5 +421,25 @@ impl_op!(Mul<Vector4> for Matrix4 {
             (self.z1 * rhs.x) + (self.z2 * rhs.y) + (self.z3 * rhs.z) + (self.z4 * rhs.w),
             (self.w1 * rhs.x) + (self.w2 * rhs.y) + (self.w3 * rhs.z) + (self.w4 * rhs.w),
         )
+    }
+});
+impl_op!(Mul for Quaternion {
+    fn mul(self, rhs) -> Quaternion {
+        unsafe {
+            Quaternion::new_unchecked(
+                (self.w * rhs.w) - (self.i * rhs.i) - (self.j * rhs.j) - (self.k * rhs.k),
+                (self.w * rhs.i) + (self.i * rhs.w) - (self.j * rhs.k) + (self.k * rhs.j),
+                (self.w * rhs.j) + (self.i * rhs.k) + (self.j * rhs.w) - (self.k * rhs.i),
+                (self.w * rhs.k) - (self.i * rhs.j) + (self.j * rhs.i) + (self.k * rhs.w),
+            )
+        }
+    }
+});
+impl_op_assign!(MulAssign for Quaternion {
+    fn mul_assign(self, rhs) {
+        self.w = (self.w * rhs.w) - (self.i * rhs.i) - (self.j * rhs.j) - (self.k * rhs.k);
+        self.i = (self.w * rhs.i) + (self.i * rhs.w) - (self.j * rhs.k) + (self.k * rhs.j);
+        self.j = (self.w * rhs.j) + (self.i * rhs.k) + (self.j * rhs.w) - (self.k * rhs.i);
+        self.k = (self.w * rhs.k) - (self.i * rhs.j) + (self.j * rhs.i) + (self.k * rhs.w);
     }
 });

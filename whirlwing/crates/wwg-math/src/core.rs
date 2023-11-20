@@ -4,22 +4,6 @@ pub struct Vector3 {
     data: [f32; 3],
 }
 
-impl std::ops::Neg for Vector3 {
-    type Output = Vector3;
-    #[inline]
-    fn neg(self) -> Self::Output {
-        Vector3::new(-self.x, -self.y, -self.z)
-    }
-}
-
-impl std::ops::Neg for &Vector3 {
-    type Output = Vector3;
-    #[inline]
-    fn neg(self) -> Self::Output {
-        Vector3::new(-self.x, -self.y, -self.z)
-    }
-}
-
 impl Vector3 {
     #[inline]
     pub fn new(x: f32, y: f32, z: f32) -> Self {
@@ -47,16 +31,16 @@ impl Vector3 {
     }
 
     #[inline]
-    pub fn dot(lhs: &Self, rhs: &Self) -> f32 {
-        (lhs.x * rhs.x) + (lhs.y * rhs.y) + (lhs.z * rhs.z)
+    pub fn dot(&self, rhs: &Self) -> f32 {
+        (self.x * self.x) + (self.y * rhs.y) + (self.z * rhs.z)
     }
 
     #[inline]
-    pub fn cross(lhs: &Self, rhs: &Self) -> Self {
+    pub fn cross(&self, rhs: &Self) -> Self {
         Vector3::new(
-            (lhs.y * rhs.z) - (lhs.z * rhs.y),
-            (lhs.z * rhs.x) - (lhs.x * rhs.z),
-            (lhs.x * rhs.y) - (lhs.y * rhs.x),
+            (self.y * rhs.z) - (self.z * rhs.y),
+            (self.z * rhs.x) - (self.x * rhs.z),
+            (self.x * rhs.y) - (self.y * rhs.x),
         )
     }
 
@@ -194,6 +178,32 @@ impl Quaternion {
             k: axis.z * sin,
         }
     }
+
+    #[inline]
+    pub unsafe fn new_unchecked(w: f32, i: f32, j: f32, k: f32) -> Self {
+        Quaternion { w, i, j, k }
+    }
+
+    #[inline]
+    pub fn inverse(&self) -> Quaternion {
+        unsafe {
+            Quaternion::new_unchecked(self.w, -self.i, -self.j, -self.k)
+        }
+    }
+
+    /// I'm not sure about this function but docs say next:
+    /// Active rotation is when the point rotated with respect to the coordinate system:
+    /// `p' = q^-1 * p * q`
+    /// Passive rotation is when the coordinate system is rotated with respect to the point:
+    /// `p' = q * p * q^-1`
+    #[inline]
+    pub fn rotate_point(&self, point: &Vector3) -> Vector3 {
+        let qp = unsafe { Quaternion::new_unchecked(0.0f32, point.x, point.y, point.z) };
+        let qres = self * qp * self.inverse();
+        Vector3::new(qres.i, qres.j, qres.k)
+    }
+
+    #[inline]
     pub fn to_rotation_matrix(self) -> Matrix4 {
         Matrix4::new(
             // self.w * self.w + self.i * self.i - self.j * self.j - self.k * self.k,

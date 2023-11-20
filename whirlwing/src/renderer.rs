@@ -211,12 +211,13 @@ impl Renderer {
             self.shader.bind();
             use wwg_math::core::*;
             use wwg_math::transform::*;
-            let angle = time.now().as_secs_f32() * 1.5f32;
+            let _angle = time.now().as_secs_f32() * 1.5f32;
             let rot = Quaternion::from_axis_angle(&Vector3::new(0.0, 0.0, 1.0).normalized(), 0.0f32);
             let model = Transform::new(Vector3::zero(), rot, Vector3::one());
 
             // Finally it works as expected!!!
             let eye = Vector3::new(2.0, 2.0, 5.0);
+            // let target = &eye + Vector3::new(0.0, 0.0, -1.0);
             let target = Vector3::zero();
             let zaxis = (&target - &eye).normalized();
             let xaxis = Vector3::cross(&zaxis, &Vector3::up()).normalized();
@@ -230,7 +231,7 @@ impl Renderer {
             );
 
             wwg_log::wwg_info!(
-                "Eye: {eye:?},\nTarget: {target:?},\nzaxis: {zaxis:?},\nxaxis: {xaxis:?},\nyaxis: {yaxis:?}"
+                "Eye: {eye:?},\nTarget: {target:?},\nzaxis: {zaxis:?},\nxaxis: {xaxis:?},\nyaxis: {yaxis:?}\neye: {eye:?}\nneg_eye: {neg_eye:?}"
             );
 
             // view.transpose();
