@@ -423,6 +423,7 @@ impl_op!(Mul<Vector4> for Matrix4 {
         )
     }
 });
+
 impl_op!(Mul for Quaternion {
     fn mul(self, rhs) -> Quaternion {
         unsafe {
@@ -431,6 +432,18 @@ impl_op!(Mul for Quaternion {
                 (self.w * rhs.i) + (self.i * rhs.w) - (self.j * rhs.k) + (self.k * rhs.j),
                 (self.w * rhs.j) + (self.i * rhs.k) + (self.j * rhs.w) - (self.k * rhs.i),
                 (self.w * rhs.k) - (self.i * rhs.j) + (self.j * rhs.i) + (self.k * rhs.w),
+            )
+        }
+    }
+});
+impl_op!(Mul<Vector3> for Quaternion {
+    fn mul(self, rhs) -> Quaternion {
+        unsafe {
+            Quaternion::new_unchecked(
+                - (self.i * rhs.x) - (self.j * rhs.y) - (self.k * rhs.z),
+                (self.w * rhs.x) - (self.j * rhs.z) + (self.k * rhs.y),
+                (self.w * rhs.y) + (self.i * rhs.z) - (self.k * rhs.x),
+                (self.w * rhs.z) - (self.i * rhs.y) + (self.j * rhs.x),
             )
         }
     }

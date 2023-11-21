@@ -211,29 +211,32 @@ impl Renderer {
             self.shader.bind();
             use wwg_math::core::*;
             use wwg_math::transform::*;
+            use wwg_math::camera::Camera;
             let _angle = time.now().as_secs_f32() * 1.5f32;
             let rot = Quaternion::from_axis_angle(&Vector3::new(0.0, 0.0, 1.0).normalized(), 0.0f32);
             let model = Transform::new(Vector3::zero(), rot, Vector3::one());
 
-            // Finally it works as expected!!!
-            let eye = Vector3::new(2.0, 2.0, 5.0);
-            let target = &eye + Vector3::new(0.0, 0.0, -1.0);
-            let target = Vector3::zero();
-            let zaxis = (&target - &eye).normalized();
-            let xaxis = Vector3::cross(&zaxis, &Vector3::up()).normalized();
-            let yaxis = Vector3::cross(&xaxis, &zaxis).normalized();
-            let neg_eye =   -&eye;
-            let view = Matrix4::new(
-                xaxis.x, xaxis.y, xaxis.z, Vector3::dot(&xaxis, &neg_eye),
-                yaxis.x, yaxis.y, yaxis.z, Vector3::dot(&yaxis, &neg_eye),
-                -zaxis.x, -zaxis.y, -zaxis.z, Vector3::dot(&zaxis, &eye),
-                0.0, 0.0, 0.0, 1.0,
-            );
 
-            // wwg_log::wwg_info!(
-            //     "Eye: {eye:?},\nTarget: {target:?},\nzaxis: {zaxis:?},\nxaxis: {xaxis:?},\nyaxis: {yaxis:?}\neye: {eye:?}\nneg_eye: {neg_eye:?}"
+            // Finally it works as expected!!!
+            let eye = Vector3::new(2.0, 2.0, 7.0);
+            // let target = &eye + Vector3::new(0.0, 0.0, -1.0);
+            let target = Vector3::zero();
+
+            // Camera tests
+            let camera = Camera::look_at(&eye, &target, &Vector3::up());
+            let view = camera.view();
+            wwg_log::info!("View matrix: {view:?}");
+
+            // let zaxis = (&target - &eye).normalized();
+            // let xaxis = Vector3::cross(&zaxis, &Vector3::up()).normalized();
+            // let yaxis = Vector3::cross(&xaxis, &zaxis).normalized();
+            // let neg_eye = -&eye;
+            // let view = Matrix4::new(
+            //     xaxis.x, xaxis.y, xaxis.z, Vector3::dot(&xaxis, &neg_eye),
+            //     yaxis.x, yaxis.y, yaxis.z, Vector3::dot(&yaxis, &neg_eye),
+            //     -zaxis.x, -zaxis.y, -zaxis.z, Vector3::dot(&zaxis, &eye),
+            //     0.0, 0.0, 0.0, 1.0,
             // );
-            wwg_log::wwg_info!("{view:?}");
 
             // Projection
             let near = 0.1f32;

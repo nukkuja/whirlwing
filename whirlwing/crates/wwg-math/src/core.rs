@@ -10,6 +10,13 @@ impl Vector3 {
         Vector3 { data: [x, y, z] }
     }
 
+    /// Transforms Quaternion `[w, i, j, k]` into Vector3 `[i, j, k]`.
+    /// Apply only if you know what you are doing.
+    #[inline]
+    pub unsafe fn from_quaternion(quat: &Quaternion) -> Self {
+        Vector3 { data: [quat.i, quat.j, quat.k] }
+    }
+
     #[inline]
     pub fn zero() -> Self {
         Vector3 { data: [0.0, 0.0, 0.0] }
@@ -23,6 +30,17 @@ impl Vector3 {
     #[inline]
     pub fn up() -> Self {
         Vector3 { data: [0.0, 1.0, 0.0] }
+    }
+
+    /// Note that function returns Vector3 with values `[0.0, 0.0, -1.0]` because OpenGl used right-handed coordinate system.
+    #[inline]
+    pub fn forward() -> Self {
+        Vector3 { data: [0.0, 0.0, -1.0] }
+    }
+
+    #[inline]
+    pub fn right() -> Self {
+        Vector3 { data: [1.0, 0.0, 0.0 ] }
     }
 
     #[inline]
@@ -47,13 +65,20 @@ impl Vector3 {
     #[inline]
     pub fn normalized(&self) -> Vector3 {
         let len = self.len();
+        if len == 0.0f32 {
+            return self.clone();
+        }
         Vector3::new(self.x / len, self.y / len, self.z / len)
     }
 
     #[inline]
-    pub fn normalize(&mut self) {
+    pub fn normalize(mut self) -> Self {
         let len = self.len();
-        *self /= len;
+        if len == 0.0f32 {
+            return self;
+        }
+        self /= len;
+        self
     }
 
     #[inline]
@@ -179,6 +204,10 @@ impl Quaternion {
         }
     }
 
+    pub fn identity() -> Self {
+        Quaternion { w: 1.0, i: 0.0, j: 0.0, k: 0.0 }
+    }
+
     #[inline]
     pub unsafe fn new_unchecked(w: f32, i: f32, j: f32, k: f32) -> Self {
         Quaternion { w, i, j, k }
@@ -201,6 +230,39 @@ impl Quaternion {
         let qp = unsafe { Quaternion::new_unchecked(0.0f32, point.x, point.y, point.z) };
         let qres = self * qp * self.inverse();
         Vector3::new(qres.i, qres.j, qres.k)
+    }
+
+    /// THIS FUNCTION IS CLEARLY BROKEN
+    #[inline]
+    pub fn look_at(eye: &Vector3, target: &Vector3, up: &Vector3) -> Self {
+
+        // let f = (target - eye).normalized();
+        // let dot = f.dot(&Vector3::forward());
+
+        let eye = eye.normalized();
+        let target = target.normalized();
+
+        let dot = eye.dot(&target);
+        if f32::abs(dot - 1.0f32) < 0.000001f32 {
+            return Quaternion::from_axis_angle(up, std::f32::consts::PI);
+        }
+        else if f32::abs(dot - (-1.0f32)) < 0.000001f32 {
+            return Quaternion::identity();
+        }
+
+        let rot_angle = f32::acos(dot);
+        let rot_axis = Vector3::cross(&eye, &target).normalize();
+        Quaternion::from_axis_angle(&rot_axis, rot_angle)
+
+        // let r = Vector3::cross(&f, up).normalized();
+        // let u = Vector3::cross(&r, &f).normalized();
+        // let neg_eye = -eye;
+        // let view = Matrix4::new(
+        //     r.x, r.y, r.z, Vector3::dot(&r, &neg_eye),
+        //     u.x, u.y, u.z, Vector3::dot(&u, &neg_eye),
+        //     -f.x, -f.y, -f.z, Vector3::dot(&f, eye),
+        //     0.0, 0.0, 0.0, 1.0,
+        // );
     }
 
     #[inline]
