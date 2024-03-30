@@ -212,15 +212,21 @@ impl Renderer {
             use wwg_math::*;
 
             let _angle = time.now().as_secs_f32() * 1.5f32;
-            let rot = Rotor3::from_rotation_xz(f32::to_radians(60.0)) * Rotor3::from_rotation_yz(f32::to_radians(30.0));
+            // let rot = Rotor3::from_rotation_xz(f32::to_radians(60.0)) * Rotor3::from_rotation_yz(f32::to_radians(30.0));
+            let rot = Rotor3::from_rotation_xz(f32::to_radians(30.0));
             let model = Similarity3::new(Vec3::zero(), rot, 1.0);
 
             // Finally it works as expected!!!
-            let eye = Vec3::new(0.0, 0.0, 5.0);
+            let eye = Vec3::new(0.0, 2.0, 5.0);
             let target = eye + Vec3::new(0.0, 0.0, -1.0);
             // let target = Vec3::zero();
 
-            let view = Mat4::look_at(eye, target, Vec3::unit_y());
+            let camera = Isometry3::new(eye, Rotor3::from_rotation_yz(f32::to_radians(-20.0)));
+            // let rot_mat = camera.rotation.into_matrix().into_homogeneous();
+            let view = camera.into_homogeneous_matrix().inversed();
+
+
+            // let view = Mat4::look_at(eye, target, Vec3::unit_y());
 
             // Projection
             let near = 0.1f32;
