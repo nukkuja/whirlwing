@@ -2,7 +2,7 @@
 use std::ptr::{null, null_mut};
 
 use wwg_error::{WhirlwingError, WhirlwingErrorKind};
-use wwg_math::core::Matrix4;
+use wwg_math::Mat4;
 
 #[cfg(debug_assertions)]
 use std::str::from_utf8_unchecked;
@@ -282,12 +282,12 @@ impl Shader {
         }
     }
 
-    pub fn set_mat4(&self, name: &str, uniform: &Matrix4) {
+    pub fn set_mat4(&self, name: &str, uniform: &Mat4) {
         unsafe {
             let mut name = name.to_string();
             name.push('\0');
             let location = gl::GetUniformLocation(self.program_id, name.as_ptr() as *const i8);
-            gl::UniformMatrix4fv(location, 1, gl::FALSE, uniform.ptr());
+            gl::UniformMatrix4fv(location, 1, gl::FALSE, uniform.as_ptr());
         }
     }
 

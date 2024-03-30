@@ -209,40 +209,27 @@ impl Renderer {
             gl::BindTexture(gl::TEXTURE_2D, self.texture2);
 
             self.shader.bind();
-            use wwg_math::core::*;
-            use wwg_math::transform::*;
+            use wwg_math::*;
+
             let _angle = time.now().as_secs_f32() * 1.5f32;
-            let rot = Quaternion::from_axis_angle(&Vector3::new(0.0, 0.0, 1.0).normalized(), 0.0f32);
-            let model = Transform::new(Vector3::zero(), rot, Vector3::one());
+            let rot = Rotor3::from_rotation_xz(f32::to_radians(60.0)) * Rotor3::from_rotation_yz(f32::to_radians(30.0));
+            let model = Similarity3::new(Vec3::zero(), rot, 1.0);
 
             // Finally it works as expected!!!
-            let eye = Vector3::new(2.0, 2.0, 5.0);
-            let target = &eye + Vector3::new(0.0, 0.0, -1.0);
-            let target = Vector3::zero();
-            let zaxis = (&target - &eye).normalized();
-            let xaxis = Vector3::cross(&zaxis, &Vector3::up()).normalized();
-            let yaxis = Vector3::cross(&xaxis, &zaxis).normalized();
-            let neg_eye =   -&eye;
-            let view = Matrix4::new(
-                xaxis.x, xaxis.y, xaxis.z, Vector3::dot(&xaxis, &neg_eye),
-                yaxis.x, yaxis.y, yaxis.z, Vector3::dot(&yaxis, &neg_eye),
-                -zaxis.x, -zaxis.y, -zaxis.z, Vector3::dot(&zaxis, &eye),
-                0.0, 0.0, 0.0, 1.0,
-            );
+            let eye = Vec3::new(0.0, 0.0, 5.0);
+            let target = eye + Vec3::new(0.0, 0.0, -1.0);
+            // let target = Vec3::zero();
 
-            // wwg_log::wwg_info!(
-            //     "Eye: {eye:?},\nTarget: {target:?},\nzaxis: {zaxis:?},\nxaxis: {xaxis:?},\nyaxis: {yaxis:?}\neye: {eye:?}\nneg_eye: {neg_eye:?}"
-            // );
-            wwg_log::wwg_info!("{view:?}");
+            let view = Mat4::look_at(eye, target, Vec3::unit_y());
 
             // Projection
             let near = 0.1f32;
             let far = 100.0f32;
             let angle_rad = 0.7f32;
             let aspect = 800.0f32 / 600.0f32;
-            let projection = ProjectionMatrix::new(near, far, angle_rad, aspect);
+            let projection = perspective_gl(angle_rad, aspect, near, far);
 
-            self.shader.set_mat4("model", &model.matrix());
+            self.shader.set_mat4("model", &model.into_homogeneous_matrix());
             self.shader.set_mat4("view", &view);
             self.shader.set_mat4("projection", &projection);
 
