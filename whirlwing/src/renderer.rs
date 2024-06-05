@@ -2,7 +2,7 @@ use std::ffi::*;
 use std::mem::{size_of, size_of_val};
 use std::ptr::null;
 
-use crate::{shader::Shader, time::Time};
+use crate::{shader::Shader, time::Time, camera::Camera};
 use glutin::display::{Display, GlDisplay};
 
 pub(crate) struct Renderer {
@@ -198,7 +198,7 @@ impl Renderer {
         }
     }
 
-    pub(crate) fn redraw(&self, time: &Time) {
+    pub(crate) fn redraw(&self, camera: &Camera, time: &Time) {
         unsafe {
             gl::ClearColor(0.2, 0.3, 0.3, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
@@ -216,17 +216,9 @@ impl Renderer {
             let rot = Rotor3::from_rotation_xz(f32::to_radians(30.0));
             let model = Similarity3::new(Vec3::zero(), rot, 1.0);
 
-            // Finally it works as expected!!!
-            let eye = Vec3::new(0.0, 2.0, 5.0);
-            let target = eye + Vec3::new(0.0, 0.0, -1.0);
-            // let target = Vec3::zero();
-
-            let camera = Isometry3::new(eye, Rotor3::from_rotation_yz(f32::to_radians(-20.0)));
-            // let rot_mat = camera.rotation.into_matrix().into_homogeneous();
-            let view = camera.into_homogeneous_matrix().inversed();
-
-
-            // let view = Mat4::look_at(eye, target, Vec3::unit_y());
+            // let eye = Vec3::new(0.0, 2.0, 5.0);
+            // let camera = Isometry3::new(eye, Rotor3::from_rotation_yz(f32::to_radians(-20.0)));
+            // let view = camera.into_homogeneous_matrix().inversed();
 
             // Projection
             let near = 0.1f32;
@@ -236,7 +228,7 @@ impl Renderer {
             let projection = perspective_gl(angle_rad, aspect, near, far);
 
             self.shader.set_mat4("model", &model.into_homogeneous_matrix());
-            self.shader.set_mat4("view", &view);
+            self.shader.set_mat4("view", &camera.view_matrix());
             self.shader.set_mat4("projection", &projection);
 
             gl::BindVertexArray(self.vertex_array);

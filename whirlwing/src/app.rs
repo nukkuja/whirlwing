@@ -1,4 +1,4 @@
-use crate::{renderer::Renderer, time::Time};
+use crate::{renderer::Renderer, time::Time, input::Input, camera::Camera};
 
 use std::num::NonZeroU32;
 
@@ -77,7 +77,12 @@ pub fn run() {
 
     let mut renderer = None;
     let mut state = None;
+
+
+    // Temporary values
+    let mut camera = Camera::create_cam_tmp();
     let mut time = Time::start();
+    let mut input_actions = Input::default();
 
     event_loop.run(move |event, elwt, control_flow| {
         control_flow.set_poll();
@@ -132,7 +137,7 @@ pub fn run() {
                             VirtualKeyCode::Escape => {
                                 control_flow.set_exit();
                             }
-                            _ => (),
+                            _ => input_actions.add_keyboard_input(input),
                         }
                     }
                 }
@@ -158,7 +163,7 @@ pub fn run() {
             Event::MainEventsCleared => {
                 if let Some((gl_context, gl_surface, window)) = &state {
                     if let Some(rend) = &renderer {
-                        rend.redraw(&time);
+                        rend.redraw(&camera, &time);
                     }
                     window.request_redraw();
                     gl_surface.swap_buffers(gl_context).unwrap();
